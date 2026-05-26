@@ -44,10 +44,11 @@ function ProviderSection({ providerName, procedures }: { providerName: string; p
           </div>
         </div>
         <div className="flex items-center gap-6 ml-4">
-          <div className="hidden sm:grid grid-cols-4 gap-6 text-right">
+          <div className="hidden sm:grid grid-cols-5 gap-6 text-right">
             <div><p className="text-xs text-slate-400">Procedure Total</p><p className="text-sm font-semibold text-blue-700 tabular-nums">{formatCurrency(summary.procedureTotal)}</p></div>
+            <div><p className="text-xs text-slate-400">Provider Owed</p><p className="text-sm font-semibold text-slate-600 tabular-nums">{formatCurrency(summary.providerOwed)}</p></div>
             <div><p className="text-xs text-slate-400">Provider Balance</p><p className={`text-sm font-semibold tabular-nums ${summary.providerBalanceOwed > 0 ? 'text-amber-700' : 'text-slate-600'}`}>{formatCurrency(summary.providerBalanceOwed)}</p></div>
-            <div><p className="text-xs text-slate-400">BHAC Retained</p><p className="text-sm font-semibold text-sky-700 tabular-nums">{formatCurrency(summary.bhacRetainedToDate)}</p></div>
+            <div><p className="text-xs text-slate-400">BHAC Net Expected</p><p className="text-sm font-semibold text-sky-700 tabular-nums">{formatCurrency(summary.bhacNetExpected)}</p></div>
             <div><p className="text-xs text-slate-400">BHAC Balance</p><p className={`text-sm font-semibold tabular-nums ${summary.bhacBalanceOwed > 0 ? 'text-orange-700' : 'text-slate-600'}`}>{formatCurrency(summary.bhacBalanceOwed)}</p></div>
           </div>
           <div className="text-slate-400 flex-shrink-0">{open ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}</div>
