@@ -5,9 +5,10 @@ interface SummaryCardProps {
   label: string;
   value: number;
   icon: ReactNode;
-  color: 'blue' | 'green' | 'amber' | 'red' | 'slate' | 'teal' | 'sky' | 'orange' | 'purple';
+  color: 'blue' | 'green' | 'amber' | 'red' | 'slate' | 'teal' | 'sky' | 'orange' | 'purple' | 'yellow';
   subtitle?: string;
   highlight?: boolean;
+  format?: 'currency' | 'percent';
 }
 
 const colorMap = {
@@ -20,10 +21,14 @@ const colorMap = {
   sky:    { bg: 'bg-sky-50',    icon: 'bg-sky-100 text-sky-600',     text: 'text-sky-700',    border: 'border-sky-100' },
   orange: { bg: 'bg-orange-50', icon: 'bg-orange-100 text-orange-600', text: 'text-orange-700', border: 'border-orange-100' },
   purple: { bg: 'bg-purple-50', icon: 'bg-purple-100 text-purple-600', text: 'text-purple-700', border: 'border-purple-100' },
+  yellow: { bg: 'bg-yellow-50', icon: 'bg-yellow-100 text-yellow-600', text: 'text-yellow-700', border: 'border-yellow-100' },
 };
 
-export default function SummaryCard({ label, value, icon, color, subtitle, highlight }: SummaryCardProps) {
+export default function SummaryCard({ label, value, icon, color, subtitle, highlight, format = 'currency' }: SummaryCardProps) {
   const c = colorMap[color];
+  const displayValue = format === 'percent'
+    ? `${(value * 100).toFixed(1)}%`
+    : formatCurrency(value);
   return (
     <div className={`rounded-xl border p-5 transition-shadow hover:shadow-md ${highlight ? 'ring-2 ring-amber-400' : ''} ${c.bg} ${c.border}`}>
       <div className="flex items-start justify-between mb-3">
@@ -35,7 +40,7 @@ export default function SummaryCard({ label, value, icon, color, subtitle, highl
         )}
       </div>
       <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">{label}</p>
-      <p className={`text-2xl font-bold ${c.text}`}>{formatCurrency(value)}</p>
+      <p className={`text-2xl font-bold ${c.text}`}>{displayValue}</p>
       {subtitle && <p className="text-xs text-slate-400 mt-1">{subtitle}</p>}
     </div>
   );

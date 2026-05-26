@@ -45,9 +45,19 @@ interface SheetRow {
 }
 
 function parseRows(values: unknown[][]): SheetRow[] {
+  if (values.length === 0) return [];
+
+  // Build a header-name → column-index map from row 0.
+  // Matching is case-insensitive and trims whitespace so minor header edits
+  // in the sheet don't break the parser.
+  const rawHeaders = values[0].map(h => String(h ?? "").trim().toLowerCase());
+  const col = (name: string): number => rawHeaders.indexOf(name.toLowerCase());
+
   return values.slice(1).filter(row => row.length > 0 && String(row[0] ?? "").trim()).map(row => {
-    const procedureId = String(row[0] ?? "").trim();
-    const providerName = String(row[1] ?? "").trim();
+    const get = (name: string): string => String(row[col(name)] ?? "").trim();
+
+    const procedureId = get("Procedure ID");
+    const providerName = get("Provider Name");
     const providerId = providerName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
     const date = deriveDateFromProcedureId(procedureId);
 
@@ -56,18 +66,18 @@ function parseRows(values: unknown[][]): SheetRow[] {
       providerName,
       providerId,
       date,
-      totalClaimPaid: parseNumber(row[2] as string),
-      totalAwards: parseNumber(row[3] as string),
-      procedureTotal: parseNumber(row[4] as string),
-      totalDeposited: parseNumber(row[5] as string),
-      undepositedTotal: parseNumber(row[6] as string),
-      providerOwed: parseNumber(row[7] as string),
-      providerPaid: parseNumber(row[8] as string),
-      providerBalanceOwed: parseNumber(row[9] as string),
-      idrTeamCommission: parseNumber(row[10] as string),
-      bhacNetExpected: parseNumber(row[11] as string),
-      bhacRetainedToDate: parseNumber(row[12] as string),
-      bhacBalanceOwed: parseNumber(row[13] as string),
+      totalClaimPaid:      parseNumber(get("Total Claim Paid")),
+      totalAwards:         parseNumber(get("Total Awards")),
+      procedureTotal:      parseNumber(get("Procedure Total")),
+      totalDeposited:      parseNumber(get("Total Deposited")),
+      undepositedTotal:    parseNumber(get("Undeposited Total")),
+      providerOwed:        parseNumber(get("Provider Owed")),
+      providerPaid:        parseNumber(get("Provider Paid")),
+      providerBalanceOwed: parseNumber(get("Provider Balance Owed")),
+      idrTeamCommission:   parseNumber(get("IDR Team Commission")),
+      bhacNetExpected:     parseNumber(get("BHAC Net Expected")),
+      bhacRetainedToDate:  parseNumber(get("BHAC Retained to Date")),
+      bhacBalanceOwed:     parseNumber(get("BHAC Balance Owed")),
     };
   });
 }

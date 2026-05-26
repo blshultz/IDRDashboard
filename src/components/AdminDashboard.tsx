@@ -1,7 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import {
   Users, ChevronDown, ChevronUp, RefreshCw, FileDown, Printer,
-  Wallet, TrendingDown, PiggyBank, AlertTriangle, Search, Filter, X
+  DollarSign, Wallet, TrendingUp, Percent, AlertTriangle, CreditCard, CheckCircle, AlertCircle,
+  Search, Filter, X
 } from 'lucide-react';
 import { Procedure, FilterState } from '../types';
 import { getProceduresByProviderName, computeSummary } from '../data/mockData';
@@ -157,11 +158,15 @@ export default function AdminDashboard({ procedures, onRefetch }: Props) {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <SummaryCard label="Collections" value={globalSummary.totalDeposited} icon={<Wallet className="w-5 h-5" />} color="green" subtitle="All providers" />
-        <SummaryCard label="Surgeon Payout" value={globalSummary.providerBalanceOwed} icon={<TrendingDown className="w-5 h-5" />} color="blue" highlight={globalSummary.providerBalanceOwed > 0} />
-        <SummaryCard label="Net Revenue" value={globalSummary.bhacRetainedToDate} icon={<PiggyBank className="w-5 h-5" />} color="purple" />
-        <SummaryCard label="Remaining Balance" value={globalSummary.bhacBalanceOwed} icon={<AlertTriangle className="w-5 h-5" />} color="orange" highlight={globalSummary.bhacBalanceOwed > 0} />
+      <div className="grid grid-cols-2 sm:grid-cols-4 xl:grid-cols-8 gap-4">
+        <SummaryCard label="Total Awarded"          value={globalSummary.procedureTotal}   icon={<DollarSign    className="w-5 h-5" />} color="blue"   subtitle="All providers" />
+        <SummaryCard label="Total Deposited"         value={globalSummary.totalDeposited}    icon={<Wallet        className="w-5 h-5" />} color="blue"   />
+        <SummaryCard label="BHAC Net Expected"       value={globalSummary.bhacNetExpected}   icon={<TrendingUp    className="w-5 h-5" />} color="green"  />
+        <SummaryCard label="BHAC Expected Margin %"  value={globalSummary.procedureTotal > 0 ? globalSummary.bhacNetExpected / globalSummary.procedureTotal : 0} icon={<Percent className="w-5 h-5" />} color="green" format="percent" />
+        <SummaryCard label="BHAC Balance"            value={globalSummary.bhacBalanceOwed}   icon={<AlertTriangle className="w-5 h-5" />} color="red"    highlight={globalSummary.bhacBalanceOwed > 0} />
+        <SummaryCard label="Provider Owed"           value={globalSummary.providerOwed}      icon={<CreditCard    className="w-5 h-5" />} color="yellow" />
+        <SummaryCard label="Provider Paid"           value={globalSummary.providerPaid}      icon={<CheckCircle   className="w-5 h-5" />} color="yellow" />
+        <SummaryCard label="Provider Balance"        value={globalSummary.providerBalanceOwed} icon={<AlertCircle className="w-5 h-5" />} color="red"   highlight={globalSummary.providerBalanceOwed > 0} />
       </div>
 
       <div className="bg-white rounded-xl border border-slate-200 shadow-sm">
