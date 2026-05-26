@@ -1,0 +1,363 @@
+import React, { useState, useEffect, useCallback } from 'react';
+import { UserPlus, Mail, RefreshCw, MoreVertical, Check, X, CreditCard as Edit2, Clock, UserCheck, UserX, Send, Shield, Stethoscope, Copy } from 'lucide-react';
+import { supabase } from '../lib/supabase';
+import { useAuth } from '../context/AuthContext';
+import { UserRoleRow, Invitation, Role } from '../types';
+import { formatDate } from '../utils/format';
+
+function copyToClipboard(text: string) { navigator.clipboard.writeText(text).catch(() => {}); }
+function getInviteLink(token: string) { return `${window.location.origin}${window.location.pathname}?invite=${token}`; }
+
+function InviteModal({ onClose, onSuccess }: { onClose: () => void; onSuccess: () => void }) {
+  const { session } = useAuth();
+  const [email, setEmail] = useState('');
+  const [displayName, setDisplayName] = useState('');
+  const [providerName, setProviderName] = useState('');
+  const [role, setRole] = useState<Role>('doctor');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [createdToken, setCreatedToken] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
+    setLoading(true);
+    try {
+      const { data, error: err } = await supabase.from('invitations').insert({
+        email: email.toLowerCase().trim(), role,
+        provider_name: role === 'doctor' ? providerName.trim() || null : null,
+        display_name: displayName.trim(),
+        invited_by: session?.user.id,
+      }).select('token').single();
+      if (err) throw new Error(err.message);
+      setCreatedToken(data.token);
+      onSuccess();
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to create invitation.');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function handleCopy() {
+    if (!createdToken) return;
+    copyToClipboard(getInviteLink(createdToken));
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
+
+  if (createdToken) {
+    return (
+      <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-md p-6">
+          <div className="flex items-center gap-3 mb-5">
+            <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center"><Check className="w-5 h-5 text-green-600" /></div>
+            <div>
+              <h2 className="text-lg font-semibold text-slate-800">Invitation created</h2>
+              <p className="text-sm text-slate-500">Share this link with {displayName || email}</p>
+            </div>
+          </div>
+          <div className="bg-slate-50 border border-slate-200 rounded-lg p-3 mb-4">
+            <p className="text-xs font-mono text-slate-600 break-all leading-relaxed">{getInviteLink(createdToken)}</p>
+          </div>
+          <div className="flex gap-2">
+            <button onClick={handleCopy} className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium transition-colors ${copied ? 'bg-green-600 text-white' : 'bg-blue-600 hover:bg-blue-700 text-white'}`}>
+              {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}{copied ? 'Copied!' : 'Copy link'}
+            </button>
+            <button onClick={onClose} className="flex-1 py-2.5 rounded-lg border border-slate-200 text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors">Done</button>
+          </div>
+          <p className="text-xs text-slate-400 text-center mt-3">Expires in 7 days. Only this specific email can use it.</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-md p-6">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-lg font-semibold text-slate-800">Invite user</h2>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-600"><X className="w-5 h-5" /></button>
+        </div>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">Email address</label>
+            <div className="relative">
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="doctor@example.com" required className="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">Display name</label>
+            <input type="text" value={displayName} onChange={e => setDisplayName(e.target.value)} placeholder="Dr. Jane Smith" required className="w-full px-4 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">Role</label>
+            <div className="flex gap-3">
+              {(['doctor','admin'] as Role[]).map(r => (
+                <label key={r} className={`flex-1 flex items-center gap-2 border rounded-lg p-3 cursor-pointer transition-all ${role === r ? 'border-blue-500 bg-blue-50' : 'border-slate-200 hover:border-slate-300'}`}>
+                  <input type="radio" name="role" value={r} checked={role === r} onChange={() => setRole(r)} className="sr-only" />
+                  {r === 'doctor' ? <Stethoscope className={`w-4 h-4 ${role === r ? 'text-blue-600' : 'text-slate-400'}`} /> : <Shield className={`w-4 h-4 ${role === r ? 'text-blue-600' : 'text-slate-400'}`} />}
+                  <span className={`text-sm font-medium capitalize ${role === r ? 'text-blue-700' : 'text-slate-600'}`}>{r}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+          {role === 'doctor' && (
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1.5">Provider Name <span className="text-slate-400 font-normal">(must match sheet exactly)</span></label>
+              <input type="text" value={providerName} onChange={e => setProviderName(e.target.value)} placeholder="e.g. Dr. Samuel Golpanian" className="w-full px-4 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            </div>
+          )}
+          {error && <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3 text-sm text-red-700">{error}</div>}
+          <div className="flex gap-3 pt-1">
+            <button type="button" onClick={onClose} className="flex-1 py-2.5 rounded-lg border border-slate-200 text-sm font-medium text-slate-600 hover:bg-slate-50">Cancel</button>
+            <button type="submit" disabled={loading} className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white rounded-lg text-sm font-medium transition-colors">
+              {loading ? <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Send className="w-4 h-4" />}
+              {loading ? 'Creating...' : 'Generate invite link'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+function EditModal({ user, onClose, onSuccess }: { user: UserRoleRow; onClose: () => void; onSuccess: () => void }) {
+  const [providerName, setProviderName] = useState(user.provider_name ?? '');
+  const [displayName, setDisplayName] = useState(user.display_name);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleSave() {
+    setLoading(true); setError(null);
+    try {
+      const { error: err } = await supabase.from('user_roles').update({
+        display_name: displayName.trim(),
+        provider_name: providerName.trim() || null,
+        provider_id: providerName.trim() ? providerName.trim().toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'') : null,
+      }).eq('email', user.email);
+      if (err) throw new Error(err.message);
+      onSuccess(); onClose();
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Save failed.');
+    } finally { setLoading(false); }
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-md p-6">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-lg font-semibold text-slate-800">Edit user</h2>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-600"><X className="w-5 h-5" /></button>
+        </div>
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">Display name</label>
+            <input type="text" value={displayName} onChange={e => setDisplayName(e.target.value)} className="w-full px-4 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          </div>
+          {user.role === 'doctor' && (
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1.5">Provider Name <span className="text-slate-400 font-normal">(must match sheet exactly)</span></label>
+              <input type="text" value={providerName} onChange={e => setProviderName(e.target.value)} className="w-full px-4 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            </div>
+          )}
+          {error && <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3 text-sm text-red-700">{error}</div>}
+          <div className="flex gap-3 pt-1">
+            <button onClick={onClose} className="flex-1 py-2.5 rounded-lg border border-slate-200 text-sm font-medium text-slate-600 hover:bg-slate-50">Cancel</button>
+            <button onClick={handleSave} disabled={loading} className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white rounded-lg text-sm font-medium transition-colors">
+              {loading ? <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Check className="w-4 h-4" />}Save
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function UserManagement() {
+  const [users, setUsers] = useState<UserRoleRow[]>([]);
+  const [invitations, setInvitations] = useState<Invitation[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showInviteModal, setShowInviteModal] = useState(false);
+  const [editingUser, setEditingUser] = useState<UserRoleRow | null>(null);
+  const [activeMenu, setActiveMenu] = useState<string | null>(null);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    const [{ data: usersData }, { data: invitesData }] = await Promise.all([
+      supabase.from('user_roles').select('*').order('display_name'),
+      supabase.from('invitations').select('*').order('created_at', { ascending: false }),
+    ]);
+    setUsers((usersData as UserRoleRow[]) ?? []);
+    setInvitations((invitesData as Invitation[]) ?? []);
+    setLoading(false);
+  }, []);
+
+  useEffect(() => { load(); }, [load]);
+
+  async function toggleActive(user: UserRoleRow) {
+    await supabase.from('user_roles').update({ is_active: !user.is_active }).eq('email', user.email);
+    setActiveMenu(null);
+    load();
+  }
+
+  async function resendInvite(invite: Invitation) {
+    const newToken = Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2) + Date.now().toString(36);
+    await supabase.from('invitations').update({ token: newToken, accepted_at: null, expires_at: new Date(Date.now() + 7*24*60*60*1000).toISOString() }).eq('id', invite.id);
+    copyToClipboard(getInviteLink(newToken));
+    load();
+  }
+
+  const pendingInvites = invitations.filter(i => !i.accepted_at && new Date(i.expires_at) > new Date());
+  const expiredInvites = invitations.filter(i => !i.accepted_at && new Date(i.expires_at) <= new Date());
+
+  return (
+    <div className="space-y-8">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-800">User Management</h1>
+          <p className="text-slate-500 text-sm mt-0.5">Manage portal access for doctors and administrators</p>
+        </div>
+        <div className="flex gap-2">
+          <button onClick={load} className="flex items-center gap-1.5 text-sm border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 px-4 py-2 rounded-lg transition-colors shadow-sm">
+            <RefreshCw className="w-4 h-4" />Refresh
+          </button>
+          <button onClick={() => setShowInviteModal(true)} className="flex items-center gap-1.5 text-sm bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors shadow-sm">
+            <UserPlus className="w-4 h-4" />Invite user
+          </button>
+        </div>
+      </div>
+
+      {loading ? (
+        <div className="flex items-center justify-center py-20">
+          <span className="w-6 h-6 border-2 border-blue-600/20 border-t-blue-600 rounded-full animate-spin" />
+        </div>
+      ) : (
+        <>
+          <section>
+            <h2 className="text-base font-semibold text-slate-700 mb-3">Active users <span className="text-slate-400 font-normal text-sm">({users.filter(u=>u.is_active).length})</span></h2>
+            <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+              {users.filter(u=>u.is_active).length === 0 ? <p className="p-8 text-center text-slate-400 text-sm">No active users.</p> : (
+                <table className="w-full text-left">
+                  <thead>
+                    <tr className="border-b border-slate-100 bg-slate-50/80">
+                      <th className="px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">User</th>
+                      <th className="px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Role</th>
+                      <th className="px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Provider Name</th>
+                      <th className="px-5 py-3 w-10" />
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {users.filter(u=>u.is_active).map(user => (
+                      <tr key={user.email} className="hover:bg-slate-50 transition-colors">
+                        <td className="px-5 py-3.5">
+                          <p className="text-sm font-medium text-slate-800">{user.display_name}</p>
+                          <p className="text-xs text-slate-400">{user.email}</p>
+                        </td>
+                        <td className="px-5 py-3.5">
+                          <span className={`inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full ${user.role === 'admin' ? 'bg-blue-100 text-blue-700' : 'bg-teal-100 text-teal-700'}`}>
+                            {user.role === 'admin' ? <Shield className="w-3 h-3" /> : <Stethoscope className="w-3 h-3" />}{user.role}
+                          </span>
+                        </td>
+                        <td className="px-5 py-3.5 text-sm text-slate-600">{user.provider_name ?? <span className="text-slate-300">—</span>}</td>
+                        <td className="px-5 py-3.5 text-right relative">
+                          <button onClick={() => setActiveMenu(activeMenu === user.email ? null : user.email)} className="p-1.5 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors">
+                            <MoreVertical className="w-4 h-4" />
+                          </button>
+                          {activeMenu === user.email && (
+                            <div className="absolute right-4 top-10 bg-white border border-slate-200 rounded-xl shadow-xl z-10 w-44 py-1">
+                              <button onClick={() => { setEditingUser(user); setActiveMenu(null); }} className="w-full flex items-center gap-2 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50"><Edit2 className="w-4 h-4" />Edit user</button>
+                              <button onClick={() => toggleActive(user)} className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50"><UserX className="w-4 h-4" />Deactivate</button>
+                            </div>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          </section>
+
+          {users.filter(u=>!u.is_active).length > 0 && (
+            <section>
+              <h2 className="text-base font-semibold text-slate-700 mb-3">Deactivated <span className="text-slate-400 font-normal text-sm">({users.filter(u=>!u.is_active).length})</span></h2>
+              <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden opacity-70">
+                <table className="w-full text-left">
+                  <tbody className="divide-y divide-slate-100">
+                    {users.filter(u=>!u.is_active).map(user => (
+                      <tr key={user.email} className="hover:bg-slate-50">
+                        <td className="px-5 py-3.5">
+                          <p className="text-sm font-medium text-slate-500 line-through">{user.display_name}</p>
+                          <p className="text-xs text-slate-400">{user.email}</p>
+                        </td>
+                        <td className="px-5 py-3.5 text-right">
+                          <button onClick={() => toggleActive(user)} className="text-xs text-blue-600 hover:text-blue-700 flex items-center gap-1 ml-auto"><UserCheck className="w-3.5 h-3.5" />Reactivate</button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          )}
+
+          {pendingInvites.length > 0 && (
+            <section>
+              <h2 className="text-base font-semibold text-slate-700 mb-3">Pending invitations <span className="text-slate-400 font-normal text-sm">({pendingInvites.length})</span></h2>
+              <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                <table className="w-full text-left">
+                  <thead><tr className="border-b border-slate-100 bg-slate-50/80">
+                    <th className="px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Email</th>
+                    <th className="px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Provider</th>
+                    <th className="px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Expires</th>
+                    <th className="px-5 py-3 w-32 text-right" />
+                  </tr></thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {pendingInvites.map(invite => (
+                      <tr key={invite.id} className="hover:bg-slate-50">
+                        <td className="px-5 py-3.5"><p className="text-sm font-medium text-slate-700">{invite.display_name || invite.email}</p><p className="text-xs text-slate-400">{invite.email}</p></td>
+                        <td className="px-5 py-3.5 text-sm text-slate-600">{invite.provider_name ?? <span className="text-slate-300">—</span>}</td>
+                        <td className="px-5 py-3.5"><span className="flex items-center gap-1.5 text-xs text-amber-600"><Clock className="w-3.5 h-3.5" />{formatDate(invite.expires_at)}</span></td>
+                        <td className="px-5 py-3.5 text-right">
+                          <div className="flex items-center justify-end gap-3">
+                            <button onClick={() => copyToClipboard(getInviteLink(invite.token))} className="text-xs flex items-center gap-1 text-slate-500 hover:text-blue-600 transition-colors"><Copy className="w-3.5 h-3.5" />Copy link</button>
+                            <button onClick={() => resendInvite(invite)} className="text-xs flex items-center gap-1 text-blue-600 hover:text-blue-700 transition-colors"><Send className="w-3.5 h-3.5" />Resend</button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          )}
+
+          {expiredInvites.length > 0 && (
+            <section>
+              <h2 className="text-base font-semibold text-slate-700 mb-3">Expired invitations <span className="text-slate-400 font-normal text-sm">({expiredInvites.length})</span></h2>
+              <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden opacity-60">
+                <table className="w-full text-left">
+                  <tbody className="divide-y divide-slate-100">
+                    {expiredInvites.map(invite => (
+                      <tr key={invite.id} className="hover:bg-slate-50">
+                        <td className="px-5 py-3.5"><p className="text-sm text-slate-500">{invite.display_name || invite.email}</p><p className="text-xs text-slate-400">{invite.email}</p></td>
+                        <td className="px-5 py-3.5 text-right"><button onClick={() => resendInvite(invite)} className="text-xs text-blue-600 hover:text-blue-700 flex items-center gap-1 ml-auto"><Send className="w-3.5 h-3.5" />Resend</button></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          )}
+        </>
+      )}
+
+      {showInviteModal && <InviteModal onClose={() => setShowInviteModal(false)} onSuccess={load} />}
+      {editingUser && <EditModal user={editingUser} onClose={() => setEditingUser(null)} onSuccess={load} />}
+      {activeMenu && <div className="fixed inset-0 z-0" onClick={() => setActiveMenu(null)} />}
+    </div>
+  );
+}
