@@ -1,14 +1,12 @@
 import React, { useState, useMemo } from 'react';
 import {
   Users, ChevronDown, ChevronUp, RefreshCw, FileDown, Printer,
-  DollarSign, TrendingDown, Wallet, AlertCircle, BarChart3, Target, PiggyBank,
-  AlertTriangle, Search, Filter, X
+  Wallet, TrendingDown, PiggyBank, AlertTriangle, Search, Filter, X
 } from 'lucide-react';
 import { Procedure, FilterState } from '../types';
 import { getProceduresByProviderName, computeSummary } from '../data/mockData';
 import { formatCurrency } from '../utils/format';
 import SummaryCard from './SummaryCard';
-import Charts from './Charts';
 
 interface Props {
   procedures: Procedure[];
@@ -159,23 +157,12 @@ export default function AdminDashboard({ procedures, onRefetch }: Props) {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-4 xl:grid-cols-8 gap-4">
-        <SummaryCard label="Procedure Total" value={globalSummary.procedureTotal} icon={<DollarSign className="w-5 h-5" />} color="blue" subtitle="All providers" />
-        <SummaryCard label="Total Deposited" value={globalSummary.totalDeposited} icon={<Wallet className="w-5 h-5" />} color="green" />
-        <SummaryCard label="Undeposited" value={globalSummary.undepositedTotal} icon={<TrendingDown className="w-5 h-5" />} color="amber" highlight={globalSummary.undepositedTotal > 0} />
-        <SummaryCard label="Provider Balance" value={globalSummary.providerBalanceOwed} icon={<AlertCircle className="w-5 h-5" />} color="red" highlight={globalSummary.providerBalanceOwed > 0} />
-        <SummaryCard label="IDR Commission" value={globalSummary.idrTeamCommission} icon={<BarChart3 className="w-5 h-5" />} color="slate" />
-        <SummaryCard label="BHAC Net Expected" value={globalSummary.bhacNetExpected} icon={<Target className="w-5 h-5" />} color="teal" />
-        <SummaryCard label="BHAC Retained" value={globalSummary.bhacRetainedToDate} icon={<PiggyBank className="w-5 h-5" />} color="sky" />
-        <SummaryCard label="BHAC Balance" value={globalSummary.bhacBalanceOwed} icon={<AlertTriangle className="w-5 h-5" />} color="orange" highlight={globalSummary.bhacBalanceOwed > 0} />
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <SummaryCard label="Collections" value={globalSummary.totalDeposited} icon={<Wallet className="w-5 h-5" />} color="green" subtitle="All providers" />
+        <SummaryCard label="Surgeon Payout" value={globalSummary.providerBalanceOwed} icon={<TrendingDown className="w-5 h-5" />} color="blue" highlight={globalSummary.providerBalanceOwed > 0} />
+        <SummaryCard label="Net Revenue" value={globalSummary.bhacRetainedToDate} icon={<PiggyBank className="w-5 h-5" />} color="purple" />
+        <SummaryCard label="Remaining Balance" value={globalSummary.bhacBalanceOwed} icon={<AlertTriangle className="w-5 h-5" />} color="orange" highlight={globalSummary.bhacBalanceOwed > 0} />
       </div>
-
-      {procedures.length > 0 && (
-        <section>
-          <h2 className="text-lg font-semibold text-slate-700 mb-4">Global Analytics</h2>
-          <Charts procedures={procedures} />
-        </section>
-      )}
 
       <div className="bg-white rounded-xl border border-slate-200 shadow-sm">
         <div className="flex items-center justify-between px-5 py-3 border-b border-slate-100">

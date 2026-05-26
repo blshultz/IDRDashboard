@@ -5,7 +5,7 @@ interface SummaryCardProps {
   label: string;
   value: number;
   icon: ReactNode;
-  color: 'blue' | 'green' | 'amber' | 'red' | 'slate' | 'teal' | 'sky' | 'orange';
+  color: 'blue' | 'green' | 'amber' | 'red' | 'slate' | 'teal' | 'sky' | 'orange' | 'purple';
   subtitle?: string;
   highlight?: boolean;
 }
@@ -19,6 +19,7 @@ const colorMap = {
   teal:   { bg: 'bg-teal-50',   icon: 'bg-teal-100 text-teal-600',   text: 'text-teal-700',   border: 'border-teal-100' },
   sky:    { bg: 'bg-sky-50',    icon: 'bg-sky-100 text-sky-600',     text: 'text-sky-700',    border: 'border-sky-100' },
   orange: { bg: 'bg-orange-50', icon: 'bg-orange-100 text-orange-600', text: 'text-orange-700', border: 'border-orange-100' },
+  purple: { bg: 'bg-purple-50', icon: 'bg-purple-100 text-purple-600', text: 'text-purple-700', border: 'border-purple-100' },
 };
 
 export default function SummaryCard({ label, value, icon, color, subtitle, highlight }: SummaryCardProps) {
