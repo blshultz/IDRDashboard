@@ -12,7 +12,7 @@ interface Props {
 }
 
 function exportDoctorCsv(procedures: Procedure[], providerName: string) {
-  const headers = ['Procedure ID', 'Claim #', 'Award Code', 'Procedure Total', 'Provider Owed', 'Provider Paid', 'Provider Balance Owed'];
+  const headers = ['Procedure ID', 'Claim No', 'Award Code', 'Procedure Total', 'Provider Owed', 'Provider Paid', 'Provider Balance Owed'];
   const rows = procedures.map(p => [p.procedureId, p.claimNumber ?? '', p.awardCode ?? '', p.procedureTotal.toFixed(2), p.providerOwed.toFixed(2), p.providerPaid.toFixed(2), p.providerBalanceOwed.toFixed(2)]);
   const csv = [headers, ...rows].map(r => r.map(v => `"${v}"`).join(',')).join('\n');
   const blob = new Blob([csv], { type: 'text/csv' });
@@ -44,12 +44,14 @@ function ProcedureRow({ procedure: p }: { procedure: Procedure }) {
       {expanded && (
         <tr className="bg-blue-50/50 border-t border-blue-100">
           <td colSpan={8} className="px-6 py-4">
-            <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
               {[
-                { label: 'Procedure Total', value: p.procedureTotal, color: 'text-blue-700' },
-                { label: 'Total Deposited', value: p.totalDeposited, color: 'text-green-700' },
-                { label: 'Provider Owed', value: p.providerOwed, color: 'text-slate-700' },
-                { label: 'Provider Paid', value: p.providerPaid, color: 'text-slate-700' },
+                { label: 'Procedure Total',      value: p.procedureTotal,      color: 'text-blue-700' },
+                { label: 'Claims Total',          value: p.totalClaimPaid,      color: 'text-slate-700' },
+                { label: 'Awards Total',          value: p.totalAwards,         color: 'text-slate-700' },
+                { label: 'Total Deposited',       value: p.totalDeposited,      color: 'text-green-700' },
+                { label: 'Provider Owed',         value: p.providerOwed,        color: 'text-slate-700' },
+                { label: 'Provider Paid',         value: p.providerPaid,        color: 'text-slate-700' },
                 { label: 'Provider Balance Owed', value: p.providerBalanceOwed, color: p.providerBalanceOwed > 0 ? 'text-amber-700' : 'text-slate-700' },
               ].map(item => (
                 <div key={item.label} className="bg-white rounded-lg border border-slate-200 p-3">
@@ -122,7 +124,7 @@ export default function DoctorDashboard({ procedures, providerName, onRefetch }:
                 <thead>
                   <tr className="border-b border-slate-100 bg-slate-50/80">
                     <th className="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Procedure ID</th>
-                    <th className="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Claim #</th>
+                    <th className="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Claim No</th>
                     <th className="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Award Code</th>
                     <th className="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide text-right">Procedure Total</th>
                     <th className="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide text-right">Provider Owed</th>
