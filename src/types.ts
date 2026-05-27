@@ -14,6 +14,8 @@ export interface Procedure {
   providerName: string;
   providerId: string;
   date: string;
+  claimNumber?: string;
+  awardCode?: string;
   totalClaimPaid: number;
   totalAwards: number;
   procedureTotal: number;

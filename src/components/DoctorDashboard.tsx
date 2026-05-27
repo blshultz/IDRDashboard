@@ -12,8 +12,8 @@ interface Props {
 }
 
 function exportDoctorCsv(procedures: Procedure[], providerName: string) {
-  const headers = ['Procedure ID', 'Procedure Total', 'Provider Owed', 'Provider Paid', 'Provider Balance Owed'];
-  const rows = procedures.map(p => [p.procedureId, p.procedureTotal.toFixed(2), p.providerOwed.toFixed(2), p.providerPaid.toFixed(2), p.providerBalanceOwed.toFixed(2)]);
+  const headers = ['Procedure ID', 'Claim #', 'Award Code', 'Procedure Total', 'Provider Owed', 'Provider Paid', 'Provider Balance Owed'];
+  const rows = procedures.map(p => [p.procedureId, p.claimNumber ?? '', p.awardCode ?? '', p.procedureTotal.toFixed(2), p.providerOwed.toFixed(2), p.providerPaid.toFixed(2), p.providerBalanceOwed.toFixed(2)]);
   const csv = [headers, ...rows].map(r => r.map(v => `"${v}"`).join(',')).join('\n');
   const blob = new Blob([csv], { type: 'text/csv' });
   const url = URL.createObjectURL(blob);
@@ -31,6 +31,8 @@ function ProcedureRow({ procedure: p }: { procedure: Procedure }) {
     <>
       <tr onClick={() => setExpanded(v => !v)} className={`cursor-pointer transition-colors ${hasBalance ? 'bg-amber-50/40 hover:bg-amber-50' : 'hover:bg-slate-50'}`}>
         <td className="px-4 py-3 text-sm font-mono text-slate-700">{p.procedureId}</td>
+        <td className="px-4 py-3 text-sm font-mono text-slate-600">{p.claimNumber || '—'}</td>
+        <td className="px-4 py-3 text-sm font-mono text-slate-600">{p.awardCode || '—'}</td>
         <td className="px-4 py-3 text-sm text-right tabular-nums text-slate-700">{formatCurrency(p.procedureTotal)}</td>
         <td className="px-4 py-3 text-sm text-right tabular-nums text-slate-700">{formatCurrency(p.providerOwed)}</td>
         <td className="px-4 py-3 text-sm text-right tabular-nums text-slate-700">{formatCurrency(p.providerPaid)}</td>
@@ -41,7 +43,7 @@ function ProcedureRow({ procedure: p }: { procedure: Procedure }) {
       </tr>
       {expanded && (
         <tr className="bg-blue-50/50 border-t border-blue-100">
-          <td colSpan={6} className="px-6 py-4">
+          <td colSpan={8} className="px-6 py-4">
             <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
               {[
                 { label: 'Procedure Total', value: p.procedureTotal, color: 'text-blue-700' },
@@ -120,6 +122,8 @@ export default function DoctorDashboard({ procedures, providerName, onRefetch }:
                 <thead>
                   <tr className="border-b border-slate-100 bg-slate-50/80">
                     <th className="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Procedure ID</th>
+                    <th className="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Claim #</th>
+                    <th className="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Award Code</th>
                     <th className="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide text-right">Procedure Total</th>
                     <th className="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide text-right">Provider Owed</th>
                     <th className="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide text-right">Provider Paid</th>
@@ -133,6 +137,8 @@ export default function DoctorDashboard({ procedures, providerName, onRefetch }:
                 <tfoot className="border-t-2 border-slate-200 bg-slate-50">
                   <tr>
                     <td className="px-4 py-3 text-xs font-semibold text-slate-600 uppercase tracking-wide">Totals</td>
+                    <td />
+                    <td />
                     <td className="px-4 py-3 text-sm font-bold text-right tabular-nums text-slate-800">{formatCurrency(summary.procedureTotal)}</td>
                     <td className="px-4 py-3 text-sm font-bold text-right tabular-nums text-slate-800">{formatCurrency(summary.providerOwed)}</td>
                     <td className="px-4 py-3 text-sm font-bold text-right tabular-nums text-slate-800">{formatCurrency(summary.providerPaid)}</td>

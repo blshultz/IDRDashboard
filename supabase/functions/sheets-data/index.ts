@@ -30,6 +30,8 @@ interface SheetRow {
   providerName: string;
   providerId: string;
   date: string;
+  claimNumber: string;
+  awardCode: string;
   totalClaimPaid: number;
   totalAwards: number;
   procedureTotal: number;
@@ -56,8 +58,10 @@ function parseRows(values: unknown[][]): SheetRow[] {
   return values.slice(1).filter(row => row.length > 0 && String(row[0] ?? "").trim()).map(row => {
     const get = (name: string): string => String(row[col(name)] ?? "").trim();
 
-    const procedureId = get("Procedure ID");
-    const providerName = get("Provider Name");
+    const procedureId = get("Procedure ID") || String(row[0] ?? "").trim();
+    // Try header-based lookup first; fall back to column B (index 1) in case the
+    // sheet header doesn't exactly match "Provider Name".
+    const providerName = get("Provider Name") || get("Provider") || String(row[1] ?? "").trim();
     const providerId = providerName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
     const date = deriveDateFromProcedureId(procedureId);
 
@@ -66,6 +70,8 @@ function parseRows(values: unknown[][]): SheetRow[] {
       providerName,
       providerId,
       date,
+      claimNumber:         get("Claim #"),
+      awardCode:           get("Award Code"),
       totalClaimPaid:      parseNumber(get("Total Claim Paid")),
       totalAwards:         parseNumber(get("Total Awards")),
       procedureTotal:      parseNumber(get("Procedure Total")),
