@@ -27,6 +27,69 @@ function exportAdminCsv(procedures: Procedure[]) {
   URL.revokeObjectURL(url);
 }
 
+/* ── Claims vs Awards pie chart card ─────────────────────────────────── */
+function PieChartCard({ claimsTotal, awardsTotal }: { claimsTotal: number; awardsTotal: number }) {
+  const total = claimsTotal + awardsTotal;
+  const r = 26;
+  const sw = 10;
+  const circ = 2 * Math.PI * r;
+  const claimsArc = total > 0 ? (claimsTotal / total) * circ : circ / 2;
+  const awardsArc = total > 0 ? (awardsTotal / total) * circ : circ / 2;
+  const claimsPct = total > 0 ? Math.round((claimsTotal / total) * 100) : 0;
+  const awardsPct = total > 0 ? 100 - claimsPct : 0;
+
+  return (
+    <div className="bg-white rounded-xl border border-blue-100 shadow-sm p-4 flex flex-col gap-2">
+      <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide leading-none">
+        Claims vs Awards
+      </p>
+      <div className="flex items-center gap-3">
+        {/* Donut chart — rotated -90° so arc starts at 12 o'clock */}
+        <svg width="68" height="68" viewBox="0 0 68 68" className="flex-shrink-0" style={{ transform: 'rotate(-90deg)' }}>
+          {/* Track */}
+          <circle cx="34" cy="34" r={r} fill="none" stroke="#dbeafe" strokeWidth={sw} />
+          {/* Claims arc (blue-600) */}
+          <circle
+            cx="34" cy="34" r={r} fill="none"
+            stroke="#2563eb" strokeWidth={sw}
+            strokeDasharray={`${claimsArc} ${circ}`}
+            strokeLinecap="butt"
+          />
+          {/* Awards arc (blue-300) — offset to start after claims arc */}
+          <circle
+            cx="34" cy="34" r={r} fill="none"
+            stroke="#93c5fd" strokeWidth={sw}
+            strokeDasharray={`${awardsArc} ${circ}`}
+            strokeDashoffset={-claimsArc}
+            strokeLinecap="butt"
+          />
+        </svg>
+
+        {/* Legend */}
+        <div className="flex flex-col gap-2 min-w-0 flex-1">
+          <div>
+            <div className="flex items-center gap-1.5 mb-0.5">
+              <span className="w-2 h-2 rounded-sm bg-blue-600 flex-shrink-0" />
+              <span className="text-xs text-slate-500">Claims</span>
+              <span className="text-xs text-slate-400 ml-auto">{claimsPct}%</span>
+            </div>
+            <p className="text-sm font-bold text-slate-800 tabular-nums pl-3.5">{formatCurrency(claimsTotal)}</p>
+          </div>
+          <div>
+            <div className="flex items-center gap-1.5 mb-0.5">
+              <span className="w-2 h-2 rounded-sm bg-blue-300 flex-shrink-0" />
+              <span className="text-xs text-slate-500">Awards</span>
+              <span className="text-xs text-slate-400 ml-auto">{awardsPct}%</span>
+            </div>
+            <p className="text-sm font-bold text-slate-800 tabular-nums pl-3.5">{formatCurrency(awardsTotal)}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── Per-provider accordion row ──────────────────────────────────────── */
 function ProviderSection({ providerName, procedures }: { providerName: string; procedures: Procedure[] }) {
   const [open, setOpen] = useState(false);
   const summary = useMemo(() => computeSummary(procedures), [procedures]);
@@ -107,10 +170,20 @@ function ProviderSection({ providerName, procedures }: { providerName: string; p
   );
 }
 
+/* ── Main component ───────────────────────────────────────────────────── */
 export default function AdminDashboard({ procedures, onRefetch }: Props) {
   const [filters, setFilters] = useState<FilterState>(EMPTY_FILTERS);
   const [showFilters, setShowFilters] = useState(false);
   const globalSummary = useMemo(() => computeSummary(procedures), [procedures]);
+
+  const totalClaimsAllowed = useMemo(
+    () => procedures.reduce((sum, p) => sum + p.totalClaimPaid, 0),
+    [procedures]
+  );
+  const totalAwardsAllowed = useMemo(
+    () => procedures.reduce((sum, p) => sum + p.totalAwards, 0),
+    [procedures]
+  );
 
   const liveProviderNames = useMemo(() => {
     const set = new Set(procedures.map(p => p.providerName));
@@ -127,7 +200,7 @@ export default function AdminDashboard({ procedures, onRefetch }: Props) {
       result = result.filter(p => p.providerId === filters.providerId);
     }
     if (filters.dateFrom) result = result.filter(p => p.date >= filters.dateFrom);
-    if (filters.dateTo) result = result.filter(p => p.date <= filters.dateTo);
+    if (filters.dateTo)   result = result.filter(p => p.date <= filters.dateTo);
     if (filters.outstandingOnly) result = result.filter(p => p.providerBalanceOwed > 0 || p.bhacBalanceOwed > 0);
     return result;
   }, [procedures, filters]);
@@ -141,6 +214,8 @@ export default function AdminDashboard({ procedures, onRefetch }: Props) {
 
   return (
     <div className="space-y-8 print:space-y-6">
+
+      {/* ── Page header ── */}
       <div className="flex items-center justify-between print:hidden">
         <div>
           <h1 className="text-2xl font-bold text-slate-800">Admin Dashboard</h1>
@@ -159,63 +234,121 @@ export default function AdminDashboard({ procedures, onRefetch }: Props) {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-4 xl:grid-cols-8 gap-4">
-        <SummaryCard label="Total Allowed"                    value={globalSummary.procedureTotal}   icon={<DollarSign    className="w-5 h-5" />} color="blue"   subtitle="All providers" />
-        <SummaryCard label="Total Deposited"                  value={globalSummary.totalDeposited}    icon={<Wallet        className="w-5 h-5" />} color="blue"   />
-        <SummaryCard label="BHAC Net Expected"                value={globalSummary.bhacNetExpected}   icon={<TrendingUp    className="w-5 h-5" />} color="green"  />
-        <SummaryCard label="BHAC Expected Margin %"           value={globalSummary.procedureTotal > 0 ? globalSummary.bhacNetExpected / globalSummary.procedureTotal : 0} icon={<Percent className="w-5 h-5" />} color="green" format="percent" />
-        <SummaryCard label="BHAC Balance"                     value={globalSummary.bhacBalanceOwed}   icon={<AlertTriangle className="w-5 h-5" />} color="red"    highlight={globalSummary.bhacBalanceOwed > 0} />
-        <SummaryCard label="Provider Collected Funds Payable" value={globalSummary.providerOwed}      icon={<CreditCard    className="w-5 h-5" />} color="yellow" />
-        <SummaryCard label="Provider Paid"                    value={globalSummary.providerPaid}      icon={<CheckCircle   className="w-5 h-5" />} color="yellow" />
-        <SummaryCard label="Provider Open Balance"            value={globalSummary.providerBalanceOwed} icon={<AlertCircle className="w-5 h-5" />} color="red"   highlight={globalSummary.providerBalanceOwed > 0} />
-      </div>
+      {/* ══ Practice Overview ══════════════════════════════════════════ */}
+      <section className="space-y-4">
+        <h2 className="text-lg font-semibold text-slate-700">Practice Overview</h2>
 
-      <div className="bg-white rounded-xl border border-slate-200 shadow-sm">
-        <div className="flex items-center justify-between px-5 py-3 border-b border-slate-100">
-          <div className="flex items-center gap-3">
-            <button onClick={() => setShowFilters(v=>!v)} className="flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-slate-800 transition-colors">
-              <Filter className="w-4 h-4" />
-              Filters
-              {activeFilterCount > 0 && <span className="bg-blue-600 text-white text-xs rounded-full px-1.5 py-0.5 leading-none">{activeFilterCount}</span>}
-              {showFilters ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-            </button>
-            {activeFilterCount > 0 && (
-              <button onClick={() => setFilters(EMPTY_FILTERS)} className="text-xs text-slate-400 hover:text-red-600 flex items-center gap-1 transition-colors">
-                <X className="w-3 h-3" />Clear all
-              </button>
-            )}
-          </div>
-          <p className="text-xs text-slate-400">{filteredProcedures.length} of {procedures.length} procedures</p>
+        <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-4">
+          <SummaryCard
+            label="Total Allowed"
+            value={globalSummary.procedureTotal}
+            icon={<DollarSign className="w-5 h-5" />}
+            color="blue"
+            subtitle="All providers"
+          />
+          <PieChartCard claimsTotal={totalClaimsAllowed} awardsTotal={totalAwardsAllowed} />
+          <SummaryCard
+            label="Total Deposited"
+            value={globalSummary.totalDeposited}
+            icon={<Wallet className="w-5 h-5" />}
+            color="blue"
+          />
+          <SummaryCard
+            label="BHAC Net Expected"
+            value={globalSummary.bhacNetExpected}
+            icon={<TrendingUp className="w-5 h-5" />}
+            color="green"
+          />
+          <SummaryCard
+            label="BHAC Expected Margin %"
+            value={globalSummary.procedureTotal > 0 ? globalSummary.bhacNetExpected / globalSummary.procedureTotal : 0}
+            icon={<Percent className="w-5 h-5" />}
+            color="green"
+            format="percent"
+          />
+          <SummaryCard
+            label="BHAC Balance"
+            value={globalSummary.bhacBalanceOwed}
+            icon={<AlertTriangle className="w-5 h-5" />}
+            color="red"
+            highlight={globalSummary.bhacBalanceOwed > 0}
+          />
         </div>
-        {showFilters && (
-          <div className="px-5 py-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-            <div className="relative lg:col-span-2">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-              <input type="text" placeholder="Search procedure ID or provider..." value={filters.search} onChange={e => setFilters(f=>({...f,search:e.target.value}))}
-                className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
-            </div>
-            <select value={filters.providerId} onChange={e => setFilters(f=>({...f,providerId:e.target.value}))}
-              className="py-2 px-3 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-600">
-              <option value="">All providers</option>
-              {liveProviderNames.map(name => {
-                const id = name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'');
-                return <option key={id} value={id}>{name}</option>;
-              })}
-            </select>
-            <input type="date" value={filters.dateFrom} onChange={e => setFilters(f=>({...f,dateFrom:e.target.value}))} className="py-2 px-3 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-600" />
-            <input type="date" value={filters.dateTo} onChange={e => setFilters(f=>({...f,dateTo:e.target.value}))} className="py-2 px-3 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-600" />
-            <label className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer lg:col-span-5 lg:w-fit">
-              <input type="checkbox" checked={filters.outstandingOnly} onChange={e => setFilters(f=>({...f,outstandingOnly:e.target.checked}))} className="rounded border-slate-300 text-blue-600 focus:ring-blue-500" />
-              Outstanding balances only
-            </label>
-          </div>
-        )}
-      </div>
 
-      <section>
-        <div className="flex items-center gap-3 mb-4">
+        {/* Filters bar */}
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm">
+          <div className="flex items-center justify-between px-5 py-3 border-b border-slate-100">
+            <div className="flex items-center gap-3">
+              <button onClick={() => setShowFilters(v=>!v)} className="flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-slate-800 transition-colors">
+                <Filter className="w-4 h-4" />
+                Filters
+                {activeFilterCount > 0 && <span className="bg-blue-600 text-white text-xs rounded-full px-1.5 py-0.5 leading-none">{activeFilterCount}</span>}
+                {showFilters ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+              </button>
+              {activeFilterCount > 0 && (
+                <button onClick={() => setFilters(EMPTY_FILTERS)} className="text-xs text-slate-400 hover:text-red-600 flex items-center gap-1 transition-colors">
+                  <X className="w-3 h-3" />Clear all
+                </button>
+              )}
+            </div>
+            <p className="text-xs text-slate-400">{filteredProcedures.length} of {procedures.length} procedures</p>
+          </div>
+          {showFilters && (
+            <div className="px-5 py-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+              <div className="relative lg:col-span-2">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <input type="text" placeholder="Search procedure ID or provider..." value={filters.search} onChange={e => setFilters(f=>({...f,search:e.target.value}))}
+                  className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+              <select value={filters.providerId} onChange={e => setFilters(f=>({...f,providerId:e.target.value}))}
+                className="py-2 px-3 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-600">
+                <option value="">All providers</option>
+                {liveProviderNames.map(name => {
+                  const id = name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'');
+                  return <option key={id} value={id}>{name}</option>;
+                })}
+              </select>
+              <input type="date" value={filters.dateFrom} onChange={e => setFilters(f=>({...f,dateFrom:e.target.value}))} className="py-2 px-3 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-600" />
+              <input type="date" value={filters.dateTo} onChange={e => setFilters(f=>({...f,dateTo:e.target.value}))} className="py-2 px-3 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-600" />
+              <label className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer lg:col-span-5 lg:w-fit">
+                <input type="checkbox" checked={filters.outstandingOnly} onChange={e => setFilters(f=>({...f,outstandingOnly:e.target.checked}))} className="rounded border-slate-300 text-blue-600 focus:ring-blue-500" />
+                Outstanding balances only
+              </label>
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* ══ Provider Overview ══════════════════════════════════════════ */}
+      <section className="space-y-4">
+        <h2 className="text-lg font-semibold text-slate-700">Provider Overview</h2>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <SummaryCard
+            label="Provider Collected Funds Payable"
+            value={globalSummary.providerOwed}
+            icon={<CreditCard className="w-5 h-5" />}
+            color="yellow"
+          />
+          <SummaryCard
+            label="Provider Paid"
+            value={globalSummary.providerPaid}
+            icon={<CheckCircle className="w-5 h-5" />}
+            color="yellow"
+          />
+          <SummaryCard
+            label="Provider Open Balance"
+            value={globalSummary.providerBalanceOwed}
+            icon={<AlertCircle className="w-5 h-5" />}
+            color="red"
+            highlight={globalSummary.providerBalanceOwed > 0}
+          />
+        </div>
+
+        {/* Provider breakdown */}
+        <div className="flex items-center gap-3">
           <Users className="w-5 h-5 text-slate-400" />
-          <h2 className="text-lg font-semibold text-slate-700">Provider Breakdown</h2>
+          <h3 className="text-base font-semibold text-slate-700">Provider Breakdown</h3>
           <span className="text-xs text-slate-400 bg-slate-100 px-2.5 py-1 rounded-full">{filteredProviderNames.length} providers</span>
         </div>
         {filteredProviderNames.length === 0 ? (
@@ -230,6 +363,7 @@ export default function AdminDashboard({ procedures, onRefetch }: Props) {
           </div>
         )}
       </section>
+
     </div>
   );
 }
