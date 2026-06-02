@@ -121,8 +121,8 @@ export default function DoctorDashboard({ procedures, providerName, onRefetch }:
         <Info className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" />
         <p className="text-sm text-blue-800 leading-relaxed">
           This dashboard reflects live financial data based on reported claim and deposit activity.
-          Outstanding balances are commonly tied to claims or awards that have been approved but not
-          yet deposited. Values may update as additional insurance payments, arbitration awards, or
+          Negative balances indicate funds deposited by the provider in excess of their portion and
+          are owed back. Values may update as additional insurance payments, arbitration awards, or
           deposits are received and processed.
         </p>
       </div>
