@@ -20,6 +20,7 @@ function decodeJwtEmail(jwt: string): string {
 }
 
 Deno.serve(async (req: Request) => {
+  // ── CORS preflight ──────────────────────────────────────────
   if (req.method === "OPTIONS") {
     return new Response(null, { status: 200, headers: corsHeaders });
   }
@@ -30,29 +31,31 @@ Deno.serve(async (req: Request) => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
 
+  // ── POST only ───────────────────────────────────────────────
   if (req.method !== "POST") {
     return json({ error: "Method not allowed" }, 405);
   }
 
-  // Require a valid authenticated session
+  // ── Authentication ──────────────────────────────────────────
   const jwt = req.headers.get("Authorization")?.replace("Bearer ", "") ?? "";
   if (!decodeJwtEmail(jwt)) {
     return json({ error: "Unauthorized" }, 401);
   }
 
-  // Both secrets live only in the edge function's environment — never in the client bundle
+  // ── Secrets — must both be present ─────────────────────────
   const webhookUrl = Deno.env.get("MAKE_WEBHOOK_URL");
   if (!webhookUrl) {
-    console.error("MAKE_WEBHOOK_URL is not set in edge function secrets");
+    console.error("[send-invite-email] MAKE_WEBHOOK_URL is not set");
     return json({ error: "Email service is not configured. Contact your administrator." }, 503);
   }
 
   const makeApiKey = Deno.env.get("MAKE_API_KEY");
   if (!makeApiKey) {
-    console.error("MAKE_API_KEY is not set in edge function secrets");
+    console.error("[send-invite-email] MAKE_API_KEY is not set");
     return json({ error: "Email service is not configured. Contact your administrator." }, 503);
   }
 
+  // ── Parse request body ──────────────────────────────────────
   let body: Record<string, unknown>;
   try {
     body = await req.json();
@@ -75,31 +78,38 @@ Deno.serve(async (req: Request) => {
   const payload = {
     portal_name:   "BHAC IDR Revenue Portal",
     email,
-    display_name:  displayName ?? "",
+    display_name:  displayName  ?? "",
     provider_name: providerName ?? "",
     invite_link:   inviteLink,
-    expires_at:    expiresAt ?? "",
+    expires_at:    expiresAt    ?? "",
   };
 
+  // ── POST to Make webhook ────────────────────────────────────
+  let makeRes: Response;
   try {
-    const res = await fetch(webhookUrl, {
-      method:  "POST",
+    makeRes = await fetch(webhookUrl, {
+      method: "POST",
       headers: {
         "Content-Type":  "application/json",
         "x-make-apikey": makeApiKey,
       },
       body: JSON.stringify(payload),
     });
-
-    if (!res.ok) {
-      const text = await res.text().catch(() => "");
-      console.error(`Make webhook responded ${res.status}: ${text}`);
-      return json({ error: `Webhook responded with status ${res.status}` }, 502);
-    }
-
-    return json({ success: true });
   } catch (err) {
-    console.error("Failed to reach Make webhook:", err);
-    return json({ error: err instanceof Error ? err.message : String(err) }, 502);
+    console.error("[send-invite-email] fetch to Make failed:", err);
+    return json({ error: `Failed to reach Make webhook: ${err instanceof Error ? err.message : String(err)}` }, 502);
   }
+
+  const makeBody = await makeRes.text().catch(() => "");
+  console.log(`[send-invite-email] Make responded ${makeRes.status}: ${makeBody}`);
+
+  // ── Return result ───────────────────────────────────────────
+  if (!makeRes.ok) {
+    return json(
+      { error: `Make webhook returned ${makeRes.status}`, makeStatus: makeRes.status, makeBody },
+      makeRes.status,
+    );
+  }
+
+  return json({ success: true });
 });

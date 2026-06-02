@@ -17,7 +17,7 @@ interface Props {
 const EMPTY_FILTERS: FilterState = { search: '', providerId: '', dateFrom: '', dateTo: '', outstandingOnly: false };
 
 function exportAdminCsv(procedures: Procedure[]) {
-  const headers = ['Procedure ID','Provider Name','Total Claim Paid','Total Awards','Procedure Total','Total Deposited','Undeposited Total','Provider Owed','Provider Paid','Provider Balance Owed','IDR Team Commission','BHAC Net Expected','BHAC Retained to Date','BHAC Balance Owed'];
+  const headers = ['Procedure ID','Provider Name','Total Claim Paid','Total Awards','Total Allowed','Total Deposited','Undeposited Total','Provider Collected Funds Payable','Provider Paid','Provider Open Balance','IDR Team Commission','BHAC Net Expected','BHAC Retained to Date','BHAC Balance Owed'];
   const rows = procedures.map(p => [p.procedureId,p.providerName,p.totalClaimPaid.toFixed(2),p.totalAwards.toFixed(2),p.procedureTotal.toFixed(2),p.totalDeposited.toFixed(2),p.undepositedTotal.toFixed(2),p.providerOwed.toFixed(2),p.providerPaid.toFixed(2),p.providerBalanceOwed.toFixed(2),p.idrTeamCommission.toFixed(2),p.bhacNetExpected.toFixed(2),p.bhacRetainedToDate.toFixed(2),p.bhacBalanceOwed.toFixed(2)]);
   const csv = [headers,...rows].map(r=>r.map(v=>`"${v}"`).join(',')).join('\n');
   const blob = new Blob([csv],{type:'text/csv'});
@@ -45,9 +45,9 @@ function ProviderSection({ providerName, procedures }: { providerName: string; p
         </div>
         <div className="flex items-center gap-6 ml-4">
           <div className="hidden sm:grid grid-cols-5 gap-6 text-right">
-            <div><p className="text-xs text-slate-400">Procedure Total</p><p className="text-sm font-semibold text-blue-700 tabular-nums">{formatCurrency(summary.procedureTotal)}</p></div>
-            <div><p className="text-xs text-slate-400">Provider Owed</p><p className="text-sm font-semibold text-slate-600 tabular-nums">{formatCurrency(summary.providerOwed)}</p></div>
-            <div><p className="text-xs text-slate-400">Provider Balance</p><p className={`text-sm font-semibold tabular-nums ${summary.providerBalanceOwed > 0 ? 'text-amber-700' : 'text-slate-600'}`}>{formatCurrency(summary.providerBalanceOwed)}</p></div>
+            <div><p className="text-xs text-slate-400">Total Allowed</p><p className="text-sm font-semibold text-blue-700 tabular-nums">{formatCurrency(summary.procedureTotal)}</p></div>
+            <div><p className="text-xs text-slate-400">Provider Collected Funds Payable</p><p className="text-sm font-semibold text-slate-600 tabular-nums">{formatCurrency(summary.providerOwed)}</p></div>
+            <div><p className="text-xs text-slate-400">Provider Open Balance</p><p className={`text-sm font-semibold tabular-nums ${summary.providerBalanceOwed > 0 ? 'text-amber-700' : 'text-slate-600'}`}>{formatCurrency(summary.providerBalanceOwed)}</p></div>
             <div><p className="text-xs text-slate-400">BHAC Net Expected</p><p className="text-sm font-semibold text-sky-700 tabular-nums">{formatCurrency(summary.bhacNetExpected)}</p></div>
             <div><p className="text-xs text-slate-400">BHAC Balance</p><p className={`text-sm font-semibold tabular-nums ${summary.bhacBalanceOwed > 0 ? 'text-orange-700' : 'text-slate-600'}`}>{formatCurrency(summary.bhacBalanceOwed)}</p></div>
           </div>
@@ -59,11 +59,11 @@ function ProviderSection({ providerName, procedures }: { providerName: string; p
         <div className="border-t border-slate-100 px-6 pb-6 pt-4 space-y-5">
           <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
             {[
-              { label: 'Procedure Total', value: summary.procedureTotal, color: 'text-blue-700', bg: 'bg-blue-50' },
+              { label: 'Total Allowed', value: summary.procedureTotal, color: 'text-blue-700', bg: 'bg-blue-50' },
               { label: 'Deposited', value: summary.totalDeposited, color: 'text-green-700', bg: 'bg-green-50' },
               { label: 'Undeposited', value: summary.undepositedTotal, color: summary.undepositedTotal > 0 ? 'text-amber-700' : 'text-slate-600', bg: summary.undepositedTotal > 0 ? 'bg-amber-50' : 'bg-slate-50' },
-              { label: 'Provider Owed', value: summary.providerOwed, color: 'text-slate-700', bg: 'bg-slate-50' },
-              { label: 'Provider Balance', value: summary.providerBalanceOwed, color: summary.providerBalanceOwed > 0 ? 'text-amber-700' : 'text-slate-600', bg: summary.providerBalanceOwed > 0 ? 'bg-amber-50' : 'bg-slate-50' },
+              { label: 'Provider Collected Funds Payable', value: summary.providerOwed, color: 'text-slate-700', bg: 'bg-slate-50' },
+              { label: 'Provider Open Balance', value: summary.providerBalanceOwed, color: summary.providerBalanceOwed > 0 ? 'text-amber-700' : 'text-slate-600', bg: summary.providerBalanceOwed > 0 ? 'bg-amber-50' : 'bg-slate-50' },
               { label: 'IDR Commission', value: summary.idrTeamCommission, color: 'text-slate-700', bg: 'bg-slate-50' },
               { label: 'BHAC Balance', value: summary.bhacBalanceOwed, color: summary.bhacBalanceOwed > 0 ? 'text-orange-700' : 'text-slate-600', bg: summary.bhacBalanceOwed > 0 ? 'bg-orange-50' : 'bg-slate-50' },
             ].map(item => (
@@ -77,7 +77,7 @@ function ProviderSection({ providerName, procedures }: { providerName: string; p
             <table className="w-full text-left text-sm">
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-200">
-                  {['Procedure ID','Claim Paid','Awards','Proc. Total','Deposited','Undeposited','Prov. Balance','IDR Comm.','BHAC Net','BHAC Retained','BHAC Balance'].map((h,i) => (
+                  {['Procedure ID','Claim Paid','Awards','Total Allowed','Deposited','Undeposited','Provider Open Balance','IDR Comm.','BHAC Net','BHAC Retained','BHAC Balance'].map((h,i) => (
                     <th key={h} className={`px-3 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wide ${i > 0 ? 'text-right' : ''}`}>{h}</th>
                   ))}
                 </tr>
@@ -160,14 +160,14 @@ export default function AdminDashboard({ procedures, onRefetch }: Props) {
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 xl:grid-cols-8 gap-4">
-        <SummaryCard label="Total Awarded"          value={globalSummary.procedureTotal}   icon={<DollarSign    className="w-5 h-5" />} color="blue"   subtitle="All providers" />
-        <SummaryCard label="Total Deposited"         value={globalSummary.totalDeposited}    icon={<Wallet        className="w-5 h-5" />} color="blue"   />
-        <SummaryCard label="BHAC Net Expected"       value={globalSummary.bhacNetExpected}   icon={<TrendingUp    className="w-5 h-5" />} color="green"  />
-        <SummaryCard label="BHAC Expected Margin %"  value={globalSummary.procedureTotal > 0 ? globalSummary.bhacNetExpected / globalSummary.procedureTotal : 0} icon={<Percent className="w-5 h-5" />} color="green" format="percent" />
-        <SummaryCard label="BHAC Balance"            value={globalSummary.bhacBalanceOwed}   icon={<AlertTriangle className="w-5 h-5" />} color="red"    highlight={globalSummary.bhacBalanceOwed > 0} />
-        <SummaryCard label="Provider Owed"           value={globalSummary.providerOwed}      icon={<CreditCard    className="w-5 h-5" />} color="yellow" />
-        <SummaryCard label="Provider Paid"           value={globalSummary.providerPaid}      icon={<CheckCircle   className="w-5 h-5" />} color="yellow" />
-        <SummaryCard label="Provider Balance"        value={globalSummary.providerBalanceOwed} icon={<AlertCircle className="w-5 h-5" />} color="red"   highlight={globalSummary.providerBalanceOwed > 0} />
+        <SummaryCard label="Total Allowed"                    value={globalSummary.procedureTotal}   icon={<DollarSign    className="w-5 h-5" />} color="blue"   subtitle="All providers" />
+        <SummaryCard label="Total Deposited"                  value={globalSummary.totalDeposited}    icon={<Wallet        className="w-5 h-5" />} color="blue"   />
+        <SummaryCard label="BHAC Net Expected"                value={globalSummary.bhacNetExpected}   icon={<TrendingUp    className="w-5 h-5" />} color="green"  />
+        <SummaryCard label="BHAC Expected Margin %"           value={globalSummary.procedureTotal > 0 ? globalSummary.bhacNetExpected / globalSummary.procedureTotal : 0} icon={<Percent className="w-5 h-5" />} color="green" format="percent" />
+        <SummaryCard label="BHAC Balance"                     value={globalSummary.bhacBalanceOwed}   icon={<AlertTriangle className="w-5 h-5" />} color="red"    highlight={globalSummary.bhacBalanceOwed > 0} />
+        <SummaryCard label="Provider Collected Funds Payable" value={globalSummary.providerOwed}      icon={<CreditCard    className="w-5 h-5" />} color="yellow" />
+        <SummaryCard label="Provider Paid"                    value={globalSummary.providerPaid}      icon={<CheckCircle   className="w-5 h-5" />} color="yellow" />
+        <SummaryCard label="Provider Open Balance"            value={globalSummary.providerBalanceOwed} icon={<AlertCircle className="w-5 h-5" />} color="red"   highlight={globalSummary.providerBalanceOwed > 0} />
       </div>
 
       <div className="bg-white rounded-xl border border-slate-200 shadow-sm">

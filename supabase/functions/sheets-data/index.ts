@@ -98,9 +98,9 @@ function buildSheetRow(get: (name: string) => unknown): SheetRow {
   };
 }
 
-/** Handles two Apps Script response shapes:
- *  1. { rows: [{ "Column": value, ... }] }  ← named-object array (current)
- *  2. { values: [["Header", ...], [val, ...]] }  ← 2-D array (legacy)
+/** Handles two response shapes:
+ *  1. { values: [["Header", ...], [val, ...]] }  ← Google Sheets REST API (primary)
+ *  2. { rows: [{ "Column": value, ... }] }        ← Apps Script named-object array (fallback)
  *
  *  Both paths use case-insensitive, trimmed header matching so that minor
  *  variations in the sheet header (trailing spaces, different capitalisation)
@@ -189,16 +189,45 @@ Deno.serve(async (req: Request) => {
 
     const isAdmin = roleRow.role === "admin";
 
-    // ── 2. Fetch and parse Google Sheet data ────────────────────
+    // ── 2. Fetch Google Sheet data ──────────────────────────────
+    // Primary: Google Sheets REST API with explicit range — completely
+    // filter-agnostic; returns every row regardless of any active filter
+    // view in the Google Sheets UI. Requires two Supabase secrets:
+    //   GOOGLE_SPREADSHEET_ID  — the ID from the sheet URL
+    //   GOOGLE_SHEETS_API_KEY  — a GCP API key with Sheets API enabled
+    //
+    // Fallback: Apps Script web app (returns only visible/filtered rows
+    // when the sheet has an active filter — use only until secrets are set).
+    const spreadsheetId = Deno.env.get("GOOGLE_SPREADSHEET_ID") ?? "";
+    const sheetsApiKey  = Deno.env.get("GOOGLE_SHEETS_API_KEY")  ?? "";
     const appsScriptUrl = Deno.env.get("APPS_SCRIPT_URL")
       ?? "https://script.google.com/macros/s/AKfycbyrJrNILCE6rf1RqLE7ezyiQssbiU6c9gdPnl5U7Vm7SEjiRRELgDF8B5cqewB2kn_b/exec";
 
-    const sheetRes = await fetch(appsScriptUrl, { redirect: "follow" });
-    if (!sheetRes.ok) {
-      throw new Error(`Apps Script error (${sheetRes.status}): ${await sheetRes.text()}`);
+    let sheetData: Record<string, unknown>;
+
+    if (spreadsheetId && sheetsApiKey) {
+      const range  = encodeURIComponent("'Procedure Summary'!A1:ZZ");
+      const apiUrl = `https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(spreadsheetId)}/values/${range}`
+                   + `?key=${encodeURIComponent(sheetsApiKey)}&valueRenderOption=UNFORMATTED_VALUE`;
+      const res = await fetch(apiUrl);
+      if (!res.ok) {
+        throw new Error(`Google Sheets API error (${res.status}): ${await res.text().catch(() => "")}`);
+      }
+      sheetData = await res.json() as Record<string, unknown>;
+      const rowCount = Array.isArray(sheetData.values)
+        ? (sheetData.values as unknown[][]).length - 1
+        : "unknown";
+      console.log(`[sheets-data] source=sheets-api dataRows=${rowCount}`);
+    } else {
+      console.warn("[sheets-data] GOOGLE_SPREADSHEET_ID or GOOGLE_SHEETS_API_KEY not set — falling back to Apps Script (filter-dependent)");
+      const res = await fetch(appsScriptUrl, { redirect: "follow" });
+      if (!res.ok) {
+        throw new Error(`Apps Script error (${res.status}): ${await res.text()}`);
+      }
+      sheetData = await res.json() as Record<string, unknown>;
     }
-    const sheetData = await sheetRes.json() as Record<string, unknown>;
-    const allRows   = parseResponse(sheetData);
+
+    const allRows = parseResponse(sheetData);
 
     // ── 3. Debug: log pending-receivable fields for every row (edge-function logs)
     //    and expose a ?debug=1 admin endpoint for browser-side inspection ────
@@ -237,60 +266,88 @@ Deno.serve(async (req: Request) => {
     if (url.searchParams.get("rawdump") === "1") {
       if (!isAdmin) return json({ error: "Forbidden" }, 403);
 
-      const rawData = sheetData;
-      let columnKeys: string[] = [];
-      let targetRawRows: Record<string, unknown>[] = [];
+      const TARGET_FIELDS = [
+        "Procedure ID",
+        "Provider Payable",
+        "Total Provider Expected",
+        "Provider Paid",
+        "Provider Open Balance",
+      ];
 
+      const rawData = sheetData;
+
+      // ── Named-object array (Apps Script path) ────────────────
       if (Array.isArray(rawData.rows) && rawData.rows.length > 0 && typeof rawData.rows[0] === "object") {
         const rawRows = rawData.rows as Record<string, unknown>[];
-        columnKeys = Object.keys(rawRows[0]);
+        const columnKeys = Object.keys(rawRows[0]);
 
-        // Find rows matching "lewis" in the Procedure ID (any key spelling)
-        targetRawRows = rawRows.filter(row => {
+        const targetRawRows = rawRows.filter(row => {
           const keys = Object.keys(row);
           const pidKey = keys.find(k => k.trim().toLowerCase() === "procedure id");
           const pid = pidKey ? String(row[pidKey] ?? "") : "";
           return pid.toLowerCase().includes("lewis");
         });
 
-        // For each target row, show the field-resolution report:
-        // which key the target field names resolved to, and the raw value.
-        const TARGET_FIELDS = [
-          "Total Provider Expected",
-          "Provider Paid",
-          "Provider Open Balance",
-        ];
         const fieldResolution = TARGET_FIELDS.map(fieldName => {
           const normalised = fieldName.trim().toLowerCase();
-          // Find the actual key in the sheet that matches (after trim+lowercase)
           const actualKey = columnKeys.find(k => k.trim().toLowerCase() === normalised) ?? null;
-          // Sample value from first matching target row
           const rawValue = actualKey && targetRawRows.length > 0
             ? targetRawRows[0][actualKey]
             : undefined;
           return {
-            lookupName:   fieldName,
-            actualKey,    // null if not found at all in the sheet
-            rawValue,     // exact value before parseNumber()
-            parsed:       rawValue === undefined || rawValue === null || rawValue === ""
-                            ? 0
-                            : parseNumber(rawValue),
+            lookupName: fieldName,
+            actualKey,
+            rawValue,
+            parsed: rawValue === undefined || rawValue === null || rawValue === ""
+              ? 0 : parseNumber(rawValue),
           };
         });
 
         return json({
-          columnKeys,         // every column header exactly as the sheet returned it
-          targetRawRows,      // full unparsed row objects for "lewis" matches
-          fieldResolution,    // lookup table: target field → actual key → raw value → parsed
+          source: "apps-script",
+          columnKeys,
+          targetRawRows,
+          fieldResolution,
           parsedMatchRows: allRows.filter(r => r.procedureId.toLowerCase().includes("lewis")),
         });
       }
 
-      // 2-D array path
+      // ── 2-D array (Sheets API path) ──────────────────────────
       if (Array.isArray(rawData.values) && (rawData.values as unknown[][]).length > 0) {
-        const values = rawData.values as unknown[][];
-        columnKeys = (values[0] as unknown[]).map(h => String(h ?? "").trim());
-        return json({ columnKeys, note: "2-D array format; check header spelling in columnKeys" });
+        const values     = rawData.values as unknown[][];
+        const columnKeys = (values[0] as unknown[]).map(h => String(h ?? "").trim());
+        const hdrs       = columnKeys.map(h => h.toLowerCase());
+
+        // Find "lewis" rows in the data
+        const pidColIdx = hdrs.indexOf("procedure id");
+        const targetRawRows = values.slice(1).filter(row => {
+          const pid = pidColIdx >= 0 ? String(row[pidColIdx] ?? "") : "";
+          return pid.toLowerCase().includes("lewis");
+        });
+
+        const fieldResolution = TARGET_FIELDS.map(fieldName => {
+          const idx      = hdrs.indexOf(fieldName.trim().toLowerCase());
+          const actualKey = idx >= 0 ? columnKeys[idx] : null;
+          const rawValue  = idx >= 0 && targetRawRows.length > 0
+            ? targetRawRows[0][idx]
+            : undefined;
+          return {
+            lookupName: fieldName,
+            columnIndex: idx >= 0 ? idx : null,
+            actualKey,
+            rawValue,
+            parsed: rawValue === undefined || rawValue === null || rawValue === ""
+              ? 0 : parseNumber(rawValue),
+          };
+        });
+
+        return json({
+          source: "sheets-api",
+          columnKeys,
+          targetRawRows,
+          fieldResolution,
+          parsedMatchRows: allRows.filter(r => r.procedureId.toLowerCase().includes("lewis")),
+        });
       }
 
       return json({ error: "Unrecognised sheet response format", keys: Object.keys(rawData) });
