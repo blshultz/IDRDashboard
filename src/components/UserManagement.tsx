@@ -3,7 +3,7 @@ import { UserPlus, Mail, RefreshCw, MoreVertical, Check, X, CreditCard as Edit2,
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { UserRoleRow, Invitation, Role } from '../types';
-import { formatDate, formatDateTime } from '../utils/format';
+import { formatDateTime } from '../utils/format';
 import { fetchProviderNames } from '../services/sheetsService';
 
 interface LoginInfo {
@@ -302,8 +302,14 @@ export default function UserManagement() {
     setLoading(true);
 
     const [usersResult, invitesResult, providers] = await Promise.all([
-      supabase.from('user_roles').select('*').order('display_name'),
-      supabase.from('invitations').select('*').order('created_at', { ascending: false }),
+      supabase
+        .from('user_roles')
+        .select('id, email, role, provider_id, provider_name, display_name, is_active, created_at')
+        .order('display_name'),
+      supabase
+        .from('invitations')
+        .select('id, email, role, provider_name, display_name, token, accepted_at, expires_at, created_at')
+        .order('created_at', { ascending: false }),
       fetchProviderNames(),
     ]);
 
@@ -449,7 +455,7 @@ export default function UserManagement() {
                             </td>
                             {/* Created */}
                             <td className="px-5 py-3.5 text-xs text-slate-500 whitespace-nowrap">
-                              {formatDate(user.created_at)}
+                              {formatDateTime(user.created_at)}
                             </td>
                             {/* Last Login */}
                             <td className="px-5 py-3.5 text-xs whitespace-nowrap">
@@ -553,7 +559,7 @@ export default function UserManagement() {
                         </td>
                         <td className="px-5 py-3.5">
                           <span className="flex items-center gap-1.5 text-xs text-amber-600">
-                            <Clock className="w-3.5 h-3.5" />{formatDate(invite.expires_at)}
+                            <Clock className="w-3.5 h-3.5" />{formatDateTime(invite.expires_at)}
                           </span>
                         </td>
                         <td className="px-5 py-3.5 text-right">
