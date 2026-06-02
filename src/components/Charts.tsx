@@ -122,7 +122,7 @@ function GroupedBarChart({
 }
 
 /* ─── Donut Chart ───────────────────────────────────────────── */
-function DonutChart({
+export function DonutChart({
   title,
   segments,
 }: {

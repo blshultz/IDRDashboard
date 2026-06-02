@@ -170,7 +170,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       throw new Error(signUpErr.message);
     }
 
-    return { needsVerification: !data.session };
+    // Fast path: email confirmation is disabled in Supabase project settings
+    if (data.session) return { needsVerification: false };
+
+    // Auto-confirm: invite-based onboarding skips the extra verification email.
+    // The RPC gate checks that the invitation was accepted within the last 15 minutes,
+    // so this only fires for the legitimate invite-token path — never open signup.
+    try {
+      await anonClient.rpc('confirm_invited_user', { p_email: invite.email });
+    } catch (confirmErr) {
+      console.warn('[invite] Auto-confirm RPC failed, falling back to email verification:', confirmErr);
+      return { needsVerification: true };
+    }
+
+    // Sign the user in directly — their email is now confirmed server-side
+    const { error: signInErr } = await supabase.auth.signInWithPassword({
+      email: invite.email,
+      password,
+    });
+    if (signInErr) {
+      console.warn('[invite] Auto sign-in after confirm failed:', signInErr.message);
+      return { needsVerification: true };
+    }
+
+    return { needsVerification: false };
   }
 
   async function resetPassword(email: string): Promise<void> {

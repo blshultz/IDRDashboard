@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { UserPlus, Mail, RefreshCw, MoreVertical, Check, X, CreditCard as Edit2, Clock, UserCheck, UserX, Send, Shield, Stethoscope, Copy, Trash2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
@@ -33,11 +33,15 @@ function InviteModal({
   const [error, setError] = useState<string | null>(null);
   const [createdToken, setCreatedToken] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  // Track which submit button was clicked: false = link-only, true = link + email
+  const pendingEmailRef = useRef(false);
+  const [emailStatus, setEmailStatus] = useState<'idle' | 'sending' | 'sent' | 'failed'>('idle');
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
     setLoading(true);
+    const wantsEmail = pendingEmailRef.current;
     try {
       const { data, error: err } = await supabase.from('invitations').insert({
         email: email.toLowerCase().trim(),
@@ -47,8 +51,28 @@ function InviteModal({
         invited_by: session?.user.id,
       }).select('token').single();
       if (err) throw new Error(err.message);
+
+      // Flip to success screen, then optionally send email
       setCreatedToken(data.token);
       onSuccess();
+
+      if (wantsEmail) {
+        setEmailStatus('sending');
+        try {
+          await sendInviteEmail({
+            email:        email.toLowerCase().trim(),
+            displayName:  displayName.trim(),
+            providerName: role === 'doctor' ? providerName.trim() || null : null,
+            inviteLink:   getInviteLink(data.token),
+            expiresAt:    new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', {
+              month: 'long', day: 'numeric', year: 'numeric',
+            }),
+          });
+          setEmailStatus('sent');
+        } catch {
+          setEmailStatus('failed');
+        }
+      }
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Failed to create invitation.');
     } finally {
@@ -76,6 +100,26 @@ function InviteModal({
               <p className="text-sm text-slate-500">Share this link with {displayName || email}</p>
             </div>
           </div>
+
+          {/* Email send status — only shown when "Generate & email" was used */}
+          {emailStatus === 'sending' && (
+            <div className="flex items-center gap-2 text-sm text-slate-500 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 mb-4">
+              <span className="w-4 h-4 border-2 border-slate-300 border-t-slate-500 rounded-full animate-spin flex-shrink-0" />
+              Sending invitation email…
+            </div>
+          )}
+          {emailStatus === 'sent' && (
+            <div className="flex items-center gap-2 text-sm text-green-700 bg-green-50 border border-green-200 rounded-lg px-3 py-2 mb-4">
+              <Check className="w-4 h-4 flex-shrink-0" />
+              Invitation email sent successfully.
+            </div>
+          )}
+          {emailStatus === 'failed' && (
+            <div className="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mb-4">
+              Email failed — copy the link below to send manually.
+            </div>
+          )}
+
           <div className="bg-slate-50 border border-slate-200 rounded-lg p-3 mb-4">
             <p className="text-xs font-mono text-slate-600 break-all leading-relaxed">{getInviteLink(createdToken)}</p>
           </div>
@@ -170,17 +214,36 @@ function InviteModal({
           {error && (
             <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3 text-sm text-red-700">{error}</div>
           )}
-          <div className="flex gap-3 pt-1">
-            <button type="button" onClick={onClose} className="flex-1 py-2.5 rounded-lg border border-slate-200 text-sm font-medium text-slate-600 hover:bg-slate-50">
+          {/* Three-button layout: Cancel | Generate link | Generate & email invite */}
+          <div className="flex gap-2 pt-1">
+            <button
+              type="button"
+              onClick={onClose}
+              className="py-2.5 px-4 rounded-lg border border-slate-200 text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors"
+            >
               Cancel
             </button>
             <button
               type="submit"
+              onClick={() => { pendingEmailRef.current = false; }}
+              disabled={loading}
+              className="py-2.5 px-4 rounded-lg border border-slate-200 text-sm font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-50 transition-colors"
+            >
+              {loading && !pendingEmailRef.current
+                ? <span className="flex items-center gap-1.5"><span className="w-3.5 h-3.5 border-2 border-slate-300 border-t-slate-600 rounded-full animate-spin" />Creating…</span>
+                : 'Generate link'
+              }
+            </button>
+            <button
+              type="submit"
+              onClick={() => { pendingEmailRef.current = true; }}
               disabled={loading}
               className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white rounded-lg text-sm font-medium transition-colors"
             >
-              {loading ? <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Send className="w-4 h-4" />}
-              {loading ? 'Creating...' : 'Generate invite link'}
+              {loading && pendingEmailRef.current
+                ? <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />Creating…</>
+                : <><Mail className="w-4 h-4" />Generate &amp; email invite</>
+              }
             </button>
           </div>
         </form>
