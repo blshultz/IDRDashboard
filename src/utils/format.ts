@@ -14,3 +14,12 @@ export function formatDate(isoDate: string): string {
     year: 'numeric',
   });
 }
+
+export function formatDateTime(isoString: string | null | undefined): string {
+  if (!isoString) return '—';
+  return new Date(isoString).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  });
+}

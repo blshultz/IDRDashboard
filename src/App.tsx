@@ -10,7 +10,7 @@ import { useProcedures } from './hooks/useProcedures';
 import { AdminTab } from './types';
 
 function AppContent() {
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, needsPasswordUpdate } = useAuth();
   const { procedures, loading: dataLoading, error, refetch } = useProcedures();
   const [adminTab, setAdminTab] = useState<AdminTab>('dashboard');
 
@@ -22,7 +22,7 @@ function AppContent() {
     );
   }
 
-  if (!user) return <Login />;
+  if (!user || needsPasswordUpdate) return <Login />;
 
   if (user.role === 'admin') {
     return (

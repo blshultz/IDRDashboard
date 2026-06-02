@@ -20,6 +20,8 @@ export interface Procedure {
   totalAwards: number;
   procedureTotal: number;
   totalDeposited: number;
+  totalClaimsDeposited?: number;
+  totalAwardsDeposited?: number;
   undepositedTotal: number;
   providerOwed: number;
   providerPaid: number;
@@ -33,6 +35,8 @@ export interface Procedure {
 export interface DashboardSummary {
   procedureTotal: number;
   totalDeposited: number;
+  totalClaimsDeposited: number;
+  totalAwardsDeposited: number;
   undepositedTotal: number;
   providerOwed: number;
   providerPaid: number;
@@ -59,7 +63,7 @@ export interface UserRoleRow {
   provider_name: string | null;
   display_name: string;
   is_active: boolean;
-  invited_at: string | null;
+  created_at: string;
 }
 
 export interface Invitation {

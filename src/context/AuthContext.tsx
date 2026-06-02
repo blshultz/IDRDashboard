@@ -7,9 +7,12 @@ interface AuthContextValue {
   user: User | null;
   session: Session | null;
   loading: boolean;
+  needsPasswordUpdate: boolean;
   login: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string) => Promise<{ needsVerification: boolean }>;
   signUpWithToken: (token: string, password: string) => Promise<{ needsVerification: boolean }>;
+  resetPassword: (email: string) => Promise<void>;
+  updatePassword: (newPassword: string) => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -36,29 +39,61 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [needsPasswordUpdate, setNeedsPasswordUpdate] = useState(false);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      if (session?.user?.email) {
-        resolveUserRole(session.user.email).then(u => { setUser(u); setLoading(false); });
-      } else {
+    // Initial session hydration (handles persistent login across page reloads).
+    // Skip if there is a Supabase auth redirect in the URL — onAuthStateChange
+    // will process that (PASSWORD_RECOVERY or email-verify SIGNED_IN).
+    const hash = window.location.hash;
+    const isAuthRedirect = hash.includes('type=recovery') || hash.includes('type=signup');
+
+    if (!isAuthRedirect) {
+      supabase.auth.getSession().then(({ data: { session: s } }) => {
+        setSession(s);
+        if (s?.user?.email) {
+          resolveUserRole(s.user.email).then(u => {
+            setUser(u);
+            setLoading(false);
+          });
+        } else {
+          setLoading(false);
+        }
+      });
+    }
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, s) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        // User clicked a password-reset link. Surface the update-password form;
+        // do NOT log them into the dashboard yet.
+        setNeedsPasswordUpdate(true);
+        setSession(s);
+        setUser(null);
         setLoading(false);
+        return;
       }
-    });
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      setSession(session);
-      if (session?.user?.email) {
-        (async () => {
-          const u = await resolveUserRole(session.user.email!);
+
+      if (event === 'SIGNED_OUT') {
+        setSession(null);
+        setUser(null);
+        setNeedsPasswordUpdate(false);
+        setLoading(false);
+        return;
+      }
+
+      // SIGNED_IN, TOKEN_REFRESHED, USER_UPDATED, INITIAL_SESSION, etc.
+      setSession(s);
+      if (s?.user?.email) {
+        resolveUserRole(s.user.email).then(u => {
           setUser(u);
           setLoading(false);
-        })();
+        });
       } else {
         setUser(null);
         setLoading(false);
       }
     });
+
     return () => subscription.unsubscribe();
   }, []);
 
@@ -70,15 +105,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   async function signUp(email: string, password: string): Promise<{ needsVerification: boolean }> {
-    // Use a fresh anon client to avoid any stale session interfering with the RLS check
     const { createClient } = await import('@supabase/supabase-js');
     const anonClient = createClient(
       import.meta.env.VITE_SUPABASE_URL as string,
       import.meta.env.VITE_SUPABASE_ANON_KEY as string
     );
-    const { data: roleRow } = await anonClient.from('user_roles').select('email').eq('email', email.toLowerCase()).maybeSingle();
+    const { data: roleRow } = await anonClient
+      .from('user_roles')
+      .select('email')
+      .eq('email', email.toLowerCase())
+      .maybeSingle();
     if (!roleRow) throw new Error('Your email is not authorized to access this portal. Contact your administrator.');
-    const { data, error } = await supabase.auth.signUp({ email, password });
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { emailRedirectTo: `${window.location.origin}/` },
+    });
     if (error) throw new Error(error.message);
     return { needsVerification: !data.session };
   }
@@ -89,37 +131,67 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       import.meta.env.VITE_SUPABASE_URL as string,
       import.meta.env.VITE_SUPABASE_ANON_KEY as string
     );
-    const { data: invite } = await anonClient.from('invitations').select('*').eq('token', token).maybeSingle();
+
+    // 1. Read invite details for display / pre-validation
+    const { data: invite } = await anonClient
+      .from('invitations')
+      .select('email, display_name, provider_name, accepted_at, expires_at')
+      .eq('token', token)
+      .maybeSingle();
     if (!invite) throw new Error('Invalid or expired invitation link.');
     if (invite.accepted_at) throw new Error('This invitation has already been used.');
     if (new Date(invite.expires_at) < new Date()) throw new Error('This invitation link has expired. Ask your administrator to resend it.');
 
-    const providerName = invite.provider_name || null;
-    await supabase.from('user_roles').upsert({
-      email: invite.email.toLowerCase(),
-      role: invite.role ?? 'doctor',
-      provider_name: providerName,
-      provider_id: providerName
-        ? providerName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
-        : null,
-      display_name: invite.display_name,
-      is_active: true,
-    }, { onConflict: 'email' });
+    // 2. Set up user_roles and mark invitation accepted (SECURITY DEFINER, safe for anon)
+    const { error: setupErr } = await anonClient.rpc('setup_user_from_invite', { p_token: token });
+    if (setupErr) {
+      const hint = (setupErr as { hint?: string }).hint ?? setupErr.message;
+      throw new Error(hint);
+    }
 
-    const { data, error } = await supabase.auth.signUp({ email: invite.email, password });
-    if (error) throw new Error(error.message);
-    await supabase.from('invitations').update({ accepted_at: new Date().toISOString() }).eq('token', token);
+    // 3. Create the Supabase Auth account
+    const { data, error: signUpErr } = await supabase.auth.signUp({
+      email: invite.email,
+      password,
+      options: { emailRedirectTo: `${window.location.origin}/` },
+    });
+    if (signUpErr) {
+      // "User already registered" means they created an account before — just let them sign in
+      if (signUpErr.message.toLowerCase().includes('already registered')) {
+        throw new Error('An account with this email already exists. Please sign in instead.');
+      }
+      throw new Error(signUpErr.message);
+    }
+
     return { needsVerification: !data.session };
+  }
+
+  async function resetPassword(email: string): Promise<void> {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/`,
+    });
+    if (error) throw new Error(error.message);
+  }
+
+  async function updatePassword(newPassword: string): Promise<void> {
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    if (error) throw new Error(error.message);
+    setNeedsPasswordUpdate(false);
+    // onAuthStateChange fires SIGNED_IN after updateUser → resolves user normally
   }
 
   async function logout() {
     await supabase.auth.signOut();
     setUser(null);
     setSession(null);
+    setNeedsPasswordUpdate(false);
   }
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, login, signUp, signUpWithToken, logout }}>
+    <AuthContext.Provider value={{
+      user, session, loading, needsPasswordUpdate,
+      login, signUp, signUpWithToken, resetPassword, updatePassword, logout,
+    }}>
       {children}
     </AuthContext.Provider>
   );
