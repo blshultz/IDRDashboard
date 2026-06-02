@@ -48,9 +48,10 @@ interface SheetRow {
   totalClaimsDeposited: number;
   totalAwardsDeposited: number;
   undepositedTotal: number;
-  providerOwed: number;        // "Provider Payable"
+  totalProviderExpected: number; // "Total Provider Expected" (= Net Awards Allowed − IDR commission, calculated in sheet)
+  providerOwed: number;          // "Provider Payable"
   providerPaid: number;
-  providerBalanceOwed: number; // "Provider Open Balance"
+  providerBalanceOwed: number;   // "Provider Open Balance"
   idrTeamCommission: number;
   bhacNetExpected: number;
   bhacRetainedToDate: number;
@@ -74,9 +75,10 @@ function buildSheetRow(get: (name: string) => unknown): SheetRow {
     totalClaimsDeposited: parseNumber(get("Total Claims Deposited")),
     totalAwardsDeposited: parseNumber(get("Total Awards Deposited")),
     undepositedTotal:     parseNumber(get("Undeposited Total")),
-    providerOwed:         parseNumber(get("Provider Payable")),
-    providerPaid:         parseNumber(get("Provider Paid")),
-    providerBalanceOwed:  parseNumber(get("Provider Open Balance")),
+    totalProviderExpected: parseNumber(get("Total Provider Expected")),
+    providerOwed:          parseNumber(get("Provider Payable")),
+    providerPaid:          parseNumber(get("Provider Paid")),
+    providerBalanceOwed:   parseNumber(get("Provider Open Balance")),
     idrTeamCommission:    parseNumber(get("IDR Team Commission")),
     bhacNetExpected:      parseNumber(get("BHAC Net Expected")),
     bhacRetainedToDate:   parseNumber(get("BHAC Retained to Date")),

@@ -23,6 +23,7 @@ export interface Procedure {
   totalClaimsDeposited?: number;
   totalAwardsDeposited?: number;
   undepositedTotal: number;
+  totalProviderExpected?: number;  // Net Awards Allowed after IDR commission — used to compute pending receivable
   providerOwed: number;
   providerPaid: number;
   providerBalanceOwed: number;
@@ -38,6 +39,7 @@ export interface DashboardSummary {
   totalClaimsDeposited: number;
   totalAwardsDeposited: number;
   undepositedTotal: number;
+  pendingProviderReceivable: number; // MAX(totalProviderExpected − providerPaid − providerBalanceOwed, 0) summed
   providerOwed: number;
   providerPaid: number;
   providerBalanceOwed: number;

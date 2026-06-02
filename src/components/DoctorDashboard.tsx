@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
-import { DollarSign, AlertCircle, CreditCard, FileDown, Printer, RefreshCw, Info } from 'lucide-react';
+import { DollarSign, AlertCircle, CreditCard, FileDown, Printer, RefreshCw, Info, Clock, TrendingUp } from 'lucide-react';
 import { Procedure } from '../types';
-import { computeSummary } from '../data/mockData';
+import { computeSummary, computePendingReceivable } from '../data/mockData';
 import { formatCurrency } from '../utils/format';
 import SummaryCard from './SummaryCard';
 
@@ -12,8 +12,15 @@ interface Props {
 }
 
 function exportDoctorCsv(procedures: Procedure[], providerName: string) {
-  const headers = ['Procedure ID', 'Provider Portion of Collected Funds', 'Provider Paid', 'Balance Due', 'Claim No', 'Award Code'];
-  const rows = procedures.map(p => [
+  const collectedHeaders = [
+    'Procedure ID',
+    'Collected Provider Funds',
+    'Provider Payments Received',
+    'Collected Funds Awaiting Payment',
+    'Claim No',
+    'Award Code',
+  ];
+  const collectedRows = procedures.map(p => [
     p.procedureId,
     p.providerOwed.toFixed(2),
     p.providerPaid.toFixed(2),
@@ -21,7 +28,22 @@ function exportDoctorCsv(procedures: Procedure[], providerName: string) {
     p.claimNumber ?? '',
     p.awardCode ?? '',
   ]);
-  const csv = [headers, ...rows].map(r => r.map(v => `"${v}"`).join(',')).join('\n');
+
+  const pendingHeaders = ['Procedure ID', 'Pending Provider Receivable'];
+  const pendingRows = procedures
+    .map(p => ({ id: p.procedureId, val: computePendingReceivable(p) }))
+    .filter(r => r.val > 0)
+    .map(r => [r.id, r.val.toFixed(2)]);
+
+  const sections = [
+    'Collected Funds Procedure Details',
+    [collectedHeaders, ...collectedRows].map(r => r.map(v => `"${v}"`).join(',')).join('\n'),
+    '',
+    'Pending Receivables',
+    [pendingHeaders, ...pendingRows].map(r => r.map(v => `"${v}"`).join(',')).join('\n'),
+  ];
+
+  const csv = sections.join('\n');
   const blob = new Blob([csv], { type: 'text/csv' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -31,7 +53,8 @@ function exportDoctorCsv(procedures: Procedure[], providerName: string) {
   URL.revokeObjectURL(url);
 }
 
-function ProcedureRow({ procedure: p }: { procedure: Procedure }) {
+/* ── Collected Funds table row ────────────────────────────────────── */
+function CollectedRow({ procedure: p }: { procedure: Procedure }) {
   const hasBalance = p.providerBalanceOwed > 0;
   return (
     <tr className={hasBalance ? 'bg-amber-50/40' : ''}>
@@ -49,11 +72,35 @@ function ProcedureRow({ procedure: p }: { procedure: Procedure }) {
   );
 }
 
+/* ── Pending Receivables table row ────────────────────────────────── */
+function PendingRow({ procedure: p, pending }: { procedure: Procedure; pending: number }) {
+  return (
+    <tr>
+      <td className="px-4 py-3 text-sm font-mono text-slate-700">{p.procedureId}</td>
+      <td className="px-4 py-3 text-sm text-right tabular-nums font-medium text-sky-700">
+        {formatCurrency(pending)}
+      </td>
+    </tr>
+  );
+}
+
+/* ── Main component ───────────────────────────────────────────────── */
 export default function DoctorDashboard({ procedures, providerName, onRefetch }: Props) {
   const summary = useMemo(() => computeSummary(procedures), [procedures]);
+
   const balanceOwedPct = summary.providerOwed > 0
     ? ((summary.providerBalanceOwed / summary.providerOwed) * 100).toFixed(1)
     : '0';
+
+  /** Rows with a positive pending receivable, sorted by amount descending */
+  const pendingRows = useMemo(
+    () =>
+      procedures
+        .map(p => ({ procedure: p, pending: computePendingReceivable(p) }))
+        .filter(r => r.pending > 0)
+        .sort((a, b) => b.pending - a.pending),
+    [procedures]
+  );
 
   return (
     <div className="space-y-8 print:space-y-6">
@@ -92,27 +139,34 @@ export default function DoctorDashboard({ procedures, providerName, onRefetch }:
         <p className="text-sm text-slate-500">Generated: {new Date().toLocaleString()}</p>
       </div>
 
-      {/* ── 3 Summary cards ── */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      {/* ── 4 Summary cards ── */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <SummaryCard
-          label="Provider Portion of Collected Funds"
+          label="Collected Provider Funds"
           value={summary.providerOwed}
           icon={<DollarSign className="w-5 h-5" />}
           color="teal"
         />
         <SummaryCard
-          label="Provider Paid"
+          label="Provider Payments Received"
           value={summary.providerPaid}
           icon={<CreditCard className="w-5 h-5" />}
           color="green"
         />
         <SummaryCard
-          label="Balance Due"
+          label="Collected Funds Awaiting Payment"
           value={summary.providerBalanceOwed}
           icon={<AlertCircle className="w-5 h-5" />}
           color="amber"
           highlight={summary.providerBalanceOwed > 0}
-          subtitle={`${balanceOwedPct}% of collected`}
+          subtitle={summary.providerBalanceOwed > 0 ? `${balanceOwedPct}% of collected` : undefined}
+        />
+        <SummaryCard
+          label="Pending Provider Receivables"
+          value={summary.pendingProviderReceivable}
+          icon={<Clock className="w-5 h-5" />}
+          color="sky"
+          subtitle={summary.pendingProviderReceivable > 0 ? 'From allowed funds not yet collected' : 'No pending receivables'}
         />
       </div>
 
@@ -121,18 +175,18 @@ export default function DoctorDashboard({ procedures, providerName, onRefetch }:
         <Info className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" />
         <p className="text-sm text-blue-800 leading-relaxed">
           This dashboard reflects live financial data based on reported claim and deposit activity.
-          Negative balances indicate funds deposited by the provider in excess of their portion and
-          are owed back. Values may update as additional insurance payments, arbitration awards, or
-          deposits are received and processed.
+          <strong className="font-semibold"> Collected Provider Funds</strong> represent your share of amounts already deposited.
+          <strong className="font-semibold"> Pending Provider Receivables</strong> represent your estimated share of allowed award
+          funds that have not yet been collected or deposited. Pending amounts may change as payments are processed.
         </p>
       </div>
 
-      {/* ── Procedure Details table ── */}
+      {/* ── Collected Funds Procedure Details table ── */}
       <section>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-slate-700">Procedure Details</h2>
+          <h2 className="text-lg font-semibold text-slate-700">Collected Funds Procedure Details</h2>
           <span className="text-xs text-slate-400 bg-slate-100 px-2.5 py-1 rounded-full">
-            {procedures.length} procedures
+            {procedures.length} procedure{procedures.length !== 1 ? 's' : ''}
           </span>
         </div>
         {procedures.length === 0 ? (
@@ -146,15 +200,15 @@ export default function DoctorDashboard({ procedures, providerName, onRefetch }:
                 <thead>
                   <tr className="border-b border-slate-100 bg-slate-50/80">
                     <th className="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Procedure ID</th>
-                    <th className="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide text-right">Provider Portion of Collected Funds</th>
-                    <th className="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide text-right">Provider Paid</th>
-                    <th className="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide text-right">Balance Due</th>
+                    <th className="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide text-right">Collected Provider Funds</th>
+                    <th className="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide text-right">Provider Payments Received</th>
+                    <th className="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide text-right">Collected Funds Awaiting Payment</th>
                     <th className="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Claim No</th>
                     <th className="px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide">Award Code</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {procedures.map(p => <ProcedureRow key={p.procedureId} procedure={p} />)}
+                  {procedures.map(p => <CollectedRow key={p.procedureId} procedure={p} />)}
                 </tbody>
                 <tfoot className="border-t-2 border-slate-200 bg-slate-50">
                   <tr>
@@ -171,6 +225,62 @@ export default function DoctorDashboard({ procedures, providerName, onRefetch }:
           </div>
         )}
       </section>
+
+      {/* ── Pending Receivables section ── */}
+      <section>
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <TrendingUp className="w-5 h-5 text-sky-500" />
+            <h2 className="text-lg font-semibold text-slate-700">Pending Receivables</h2>
+          </div>
+          {pendingRows.length > 0 && (
+            <span className="text-xs text-sky-600 bg-sky-50 border border-sky-200 px-2.5 py-1 rounded-full">
+              {pendingRows.length} procedure{pendingRows.length !== 1 ? 's' : ''} pending
+            </span>
+          )}
+        </div>
+
+        {pendingRows.length === 0 ? (
+          <div className="bg-sky-50 border border-sky-200 rounded-xl p-8 text-center">
+            <Clock className="w-8 h-8 text-sky-300 mx-auto mb-3" />
+            <p className="text-sky-700 text-sm font-medium">No pending receivables</p>
+            <p className="text-sky-500 text-xs mt-1">All expected funds have been collected or are accounted for.</p>
+          </div>
+        ) : (
+          <div className="bg-white rounded-xl border border-sky-200 shadow-sm overflow-hidden">
+            <div className="bg-sky-50 border-b border-sky-100 px-4 py-2.5 flex items-center gap-2">
+              <Info className="w-3.5 h-3.5 text-sky-500 flex-shrink-0" />
+              <p className="text-xs text-sky-700">
+                Estimated provider share of allowed award funds not yet collected or deposited. Amounts are subject to change.
+              </p>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left">
+                <thead>
+                  <tr className="border-b border-sky-100 bg-sky-50/60">
+                    <th className="px-4 py-3 text-xs font-semibold text-sky-700 uppercase tracking-wide">Procedure ID</th>
+                    <th className="px-4 py-3 text-xs font-semibold text-sky-700 uppercase tracking-wide text-right">Pending Provider Receivable</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {pendingRows.map(({ procedure, pending }) => (
+                    <PendingRow key={procedure.procedureId} procedure={procedure} pending={pending} />
+                  ))}
+                </tbody>
+                <tfoot className="border-t-2 border-sky-200 bg-sky-50/60">
+                  <tr>
+                    <td className="px-4 py-3 text-xs font-semibold text-sky-700 uppercase tracking-wide">Total Pending</td>
+                    <td className="px-4 py-3 text-sm font-bold text-right tabular-nums text-sky-700">
+                      {formatCurrency(summary.pendingProviderReceivable)}
+                    </td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+        )}
+      </section>
+
     </div>
   );
 }
