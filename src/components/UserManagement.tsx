@@ -406,7 +406,10 @@ export default function UserManagement() {
   }
 
   async function resendInvite(invite: Invitation) {
-    const newToken = crypto.randomUUID().replace(/-/g, '') + Date.now().toString(36);
+    // Use a plain UUID string — valid for both uuid and text column types.
+    // The previous format (stripped dashes + timestamp suffix) is not a valid
+    // UUID and would fail if the invitations.token column is uuid type.
+    const newToken = crypto.randomUUID();
     await supabase.from('invitations').update({
       token: newToken,
       accepted_at: null,

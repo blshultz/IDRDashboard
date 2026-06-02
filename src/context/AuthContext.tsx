@@ -145,8 +145,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // 2. Set up user_roles and mark invitation accepted (SECURITY DEFINER, safe for anon)
     const { error: setupErr } = await anonClient.rpc('setup_user_from_invite', { p_token: token });
     if (setupErr) {
-      const hint = (setupErr as { hint?: string }).hint ?? setupErr.message;
-      throw new Error(hint);
+      // Log full error so the exact Postgres error is visible in the browser console
+      console.error('[setup_user_from_invite] RPC error:', {
+        message: setupErr.message,
+        hint:    (setupErr as Record<string, unknown>).hint,
+        details: (setupErr as Record<string, unknown>).details,
+        code:    (setupErr as Record<string, unknown>).code,
+      });
+      const hint = (setupErr as { hint?: string }).hint;
+      throw new Error(hint ?? setupErr.message);
     }
 
     // 3. Create the Supabase Auth account
