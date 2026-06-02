@@ -48,10 +48,18 @@ interface SheetRow {
   totalClaimsDeposited: number;
   totalAwardsDeposited: number;
   undepositedTotal: number;
-  totalProviderExpected: number; // "Total Provider Expected" (= Net Awards Allowed − IDR commission, calculated in sheet)
-  providerOwed: number;          // "Provider Payable"
-  providerPaid: number;
-  providerBalanceOwed: number;   // "Provider Open Balance"
+
+  // Doctor-facing fields — explicit column names, used for pending-receivable formula
+  providerPayable: number;       // Sheet: "Provider Payable"
+  totalProviderExpected: number; // Sheet: "Total Provider Expected"
+  providerPaid: number;          // Sheet: "Provider Paid" (shared)
+  providerOpenBalance: number;   // Sheet: "Provider Open Balance"
+
+  // Admin aliases for the same collected-fund columns (kept for admin dashboard)
+  providerOwed: number;          // same column as providerPayable
+  providerBalanceOwed: number;   // same column as providerOpenBalance
+
+  // BHAC admin calculations — do not use for doctor pending-receivable
   idrTeamCommission: number;
   bhacNetExpected: number;
   bhacRetainedToDate: number;
@@ -75,11 +83,15 @@ function buildSheetRow(get: (name: string) => unknown): SheetRow {
     totalClaimsDeposited: parseNumber(get("Total Claims Deposited")),
     totalAwardsDeposited: parseNumber(get("Total Awards Deposited")),
     undepositedTotal:     parseNumber(get("Undeposited Total")),
+    // Doctor-facing fields — parsed from their exact sheet column names
+    providerPayable:       parseNumber(get("Provider Payable")),
     totalProviderExpected: parseNumber(get("Total Provider Expected")),
-    providerOwed:          parseNumber(get("Provider Payable")),
     providerPaid:          parseNumber(get("Provider Paid")),
+    providerOpenBalance:   parseNumber(get("Provider Open Balance")),
+    // Admin aliases (same sheet columns as the doctor fields above)
+    providerOwed:          parseNumber(get("Provider Payable")),
     providerBalanceOwed:   parseNumber(get("Provider Open Balance")),
-    idrTeamCommission:    parseNumber(get("IDR Team Commission")),
+    idrTeamCommission:     parseNumber(get("IDR Team Commission")),
     bhacNetExpected:      parseNumber(get("BHAC Net Expected")),
     bhacRetainedToDate:   parseNumber(get("BHAC Retained to Date")),
     bhacBalanceOwed:      parseNumber(get("BHAC Balance Owed")),

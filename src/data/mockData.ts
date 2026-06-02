@@ -8,9 +8,22 @@ export function getProceduresByProvider(procedures: Procedure[], providerId: str
   return procedures.filter(p => p.providerId === providerId);
 }
 
-/** Per-procedure pending receivable: expected total earnings minus already-paid and still-owed-from-collected. */
+/**
+ * Per-procedure pending receivable — doctor portal only.
+ *
+ * Formula:  MAX(totalProviderExpected − providerPaid − providerOpenBalance, 0)
+ *
+ * Uses the explicit doctor-facing field names so the formula is clearly
+ * independent of admin/BHAC calculations.  Falls back to the admin aliases
+ * (same sheet columns) only if the explicit fields were not parsed.
+ *
+ * Do NOT substitute bhacNetExpected or any other BHAC field here.
+ */
 export function computePendingReceivable(p: Procedure): number {
-  return Math.max((p.totalProviderExpected ?? 0) - p.providerPaid - p.providerBalanceOwed, 0);
+  const expected    = p.totalProviderExpected ?? 0;
+  const paid        = p.providerPaid;
+  const openBalance = p.providerOpenBalance ?? p.providerBalanceOwed; // fallback to alias
+  return Math.max(expected - paid - openBalance, 0);
 }
 
 export function computeSummary(procedures: Procedure[]): DashboardSummary {

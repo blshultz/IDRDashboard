@@ -23,11 +23,24 @@ export interface Procedure {
   totalClaimsDeposited?: number;
   totalAwardsDeposited?: number;
   undepositedTotal: number;
-  totalProviderExpected?: number;  // Net Awards Allowed after IDR commission — used to compute pending receivable
+
+  // ── Doctor-facing fields (explicit sheet column names) ───────────────────
+  // Used only for doctor portal display and pending-receivable calculation.
+  // Do NOT use these for admin/BHAC calculations.
+  providerPayable?: number;      // Sheet: "Provider Payable"   — doctor's share of collected funds
+  totalProviderExpected?: number;// Sheet: "Total Provider Expected" — doctor's total expected earnings
+  providerOpenBalance?: number;  // Sheet: "Provider Open Balance" — balance still owed from collected funds
+
+  // ── Admin/internal fields ────────────────────────────────────────────────
+  // providerOwed and providerBalanceOwed are legacy aliases for the same sheet
+  // columns as providerPayable / providerOpenBalance. Kept for admin dashboard
+  // compatibility; do not use for doctor pending-receivable formula.
   providerOwed: number;
-  providerPaid: number;
+  providerPaid: number;          // Sheet: "Provider Paid" — shared by both portals
   providerBalanceOwed: number;
   idrTeamCommission: number;
+
+  // ── BHAC admin calculations — do not use for doctor portal ──────────────
   bhacNetExpected: number;
   bhacRetainedToDate: number;
   bhacBalanceOwed: number;
@@ -39,7 +52,7 @@ export interface DashboardSummary {
   totalClaimsDeposited: number;
   totalAwardsDeposited: number;
   undepositedTotal: number;
-  pendingProviderReceivable: number; // MAX(totalProviderExpected − providerPaid − providerBalanceOwed, 0) summed
+  pendingProviderReceivable: number; // SUM of MAX(totalProviderExpected − providerPaid − providerOpenBalance, 0)
   providerOwed: number;
   providerPaid: number;
   providerBalanceOwed: number;
