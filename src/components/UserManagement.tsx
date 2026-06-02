@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { UserPlus, Mail, RefreshCw, MoreVertical, Check, X, CreditCard as Edit2, Clock, UserCheck, UserX, Send, Shield, Stethoscope, Copy } from 'lucide-react';
+import { UserPlus, Mail, RefreshCw, MoreVertical, Check, X, CreditCard as Edit2, Clock, UserCheck, UserX, Send, Shield, Stethoscope, Copy, Trash2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { UserRoleRow, Invitation, Role } from '../types';
@@ -359,6 +359,7 @@ export default function UserManagement() {
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [editingUser, setEditingUser] = useState<UserRoleRow | null>(null);
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -416,6 +417,12 @@ export default function UserManagement() {
       expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
     }).eq('id', invite.id);
     copyToClipboard(getInviteLink(newToken));
+    load();
+  }
+
+  async function deleteInvite(invite: Invitation) {
+    await supabase.from('invitations').delete().eq('id', invite.id);
+    setConfirmDeleteId(null);
     load();
   }
 
@@ -628,20 +635,45 @@ export default function UserManagement() {
                           </span>
                         </td>
                         <td className="px-5 py-3.5 text-right">
-                          <div className="flex items-center justify-end gap-3">
-                            <button
-                              onClick={() => copyToClipboard(getInviteLink(invite.token))}
-                              className="text-xs flex items-center gap-1 text-slate-500 hover:text-blue-600 transition-colors"
-                            >
-                              <Copy className="w-3.5 h-3.5" />Copy link
-                            </button>
-                            <button
-                              onClick={() => resendInvite(invite)}
-                              className="text-xs flex items-center gap-1 text-blue-600 hover:text-blue-700 transition-colors"
-                            >
-                              <Send className="w-3.5 h-3.5" />Resend
-                            </button>
-                          </div>
+                          {confirmDeleteId === invite.id ? (
+                            <div className="flex items-center justify-end gap-2">
+                              <span className="text-xs text-slate-500">Delete this invite?</span>
+                              <button
+                                onClick={() => deleteInvite(invite)}
+                                className="text-xs font-medium text-white bg-red-500 hover:bg-red-600 px-2.5 py-1 rounded-md transition-colors"
+                              >
+                                Delete
+                              </button>
+                              <button
+                                onClick={() => setConfirmDeleteId(null)}
+                                className="text-xs text-slate-500 hover:text-slate-700 px-2 py-1 rounded-md hover:bg-slate-100 transition-colors"
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          ) : (
+                            <div className="flex items-center justify-end gap-3">
+                              <button
+                                onClick={() => copyToClipboard(getInviteLink(invite.token))}
+                                className="text-xs flex items-center gap-1 text-slate-500 hover:text-blue-600 transition-colors"
+                              >
+                                <Copy className="w-3.5 h-3.5" />Copy link
+                              </button>
+                              <button
+                                onClick={() => resendInvite(invite)}
+                                className="text-xs flex items-center gap-1 text-blue-600 hover:text-blue-700 transition-colors"
+                              >
+                                <Send className="w-3.5 h-3.5" />Resend
+                              </button>
+                              <button
+                                onClick={() => setConfirmDeleteId(invite.id)}
+                                className="text-xs flex items-center gap-1 text-slate-400 hover:text-red-600 transition-colors"
+                                title="Delete invitation"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          )}
                         </td>
                       </tr>
                     ))}
@@ -667,12 +699,39 @@ export default function UserManagement() {
                           <p className="text-xs text-slate-400">{invite.email}</p>
                         </td>
                         <td className="px-5 py-3.5 text-right">
-                          <button
-                            onClick={() => resendInvite(invite)}
-                            className="text-xs text-blue-600 hover:text-blue-700 flex items-center gap-1 ml-auto"
-                          >
-                            <Send className="w-3.5 h-3.5" />Resend
-                          </button>
+                          {confirmDeleteId === invite.id ? (
+                            <div className="flex items-center justify-end gap-2">
+                              <span className="text-xs text-slate-500">Delete this invite?</span>
+                              <button
+                                onClick={() => deleteInvite(invite)}
+                                className="text-xs font-medium text-white bg-red-500 hover:bg-red-600 px-2.5 py-1 rounded-md transition-colors"
+                              >
+                                Delete
+                              </button>
+                              <button
+                                onClick={() => setConfirmDeleteId(null)}
+                                className="text-xs text-slate-500 hover:text-slate-700 px-2 py-1 rounded-md hover:bg-slate-100 transition-colors"
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          ) : (
+                            <div className="flex items-center justify-end gap-2">
+                              <button
+                                onClick={() => resendInvite(invite)}
+                                className="text-xs text-blue-600 hover:text-blue-700 flex items-center gap-1"
+                              >
+                                <Send className="w-3.5 h-3.5" />Resend
+                              </button>
+                              <button
+                                onClick={() => setConfirmDeleteId(invite.id)}
+                                className="text-xs flex items-center gap-1 text-slate-400 hover:text-red-600 transition-colors"
+                                title="Delete invitation"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          )}
                         </td>
                       </tr>
                     ))}
