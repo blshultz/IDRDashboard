@@ -40,10 +40,16 @@ Deno.serve(async (req: Request) => {
     return json({ error: "Unauthorized" }, 401);
   }
 
-  // Webhook URL lives only in the edge function's environment — never in the client bundle
+  // Both secrets live only in the edge function's environment — never in the client bundle
   const webhookUrl = Deno.env.get("MAKE_WEBHOOK_URL");
   if (!webhookUrl) {
     console.error("MAKE_WEBHOOK_URL is not set in edge function secrets");
+    return json({ error: "Email service is not configured. Contact your administrator." }, 503);
+  }
+
+  const makeApiKey = Deno.env.get("MAKE_API_KEY");
+  if (!makeApiKey) {
+    console.error("MAKE_API_KEY is not set in edge function secrets");
     return json({ error: "Email service is not configured. Contact your administrator." }, 503);
   }
 
@@ -78,8 +84,11 @@ Deno.serve(async (req: Request) => {
   try {
     const res = await fetch(webhookUrl, {
       method:  "POST",
-      headers: { "Content-Type": "application/json" },
-      body:    JSON.stringify(payload),
+      headers: {
+        "Content-Type":  "application/json",
+        "x-make-apikey": makeApiKey,
+      },
+      body: JSON.stringify(payload),
     });
 
     if (!res.ok) {
