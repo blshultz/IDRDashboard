@@ -27,7 +27,29 @@ export async function fetchProcedures(): Promise<Procedure[]> {
   }
   const json = await res.json();
   if (json.error) throw new Error(json.error);
-  return json.rows as Procedure[];
+  const rows = json.rows as Procedure[];
+
+  // ── Temporary debug logging — remove once pending-receivable values confirmed ──
+  const DEBUG_NAMES = ['lewis', 'maren', 'holifield', 'aoyagi'];
+  rows.forEach(p => {
+    const idLower = p.procedureId.toLowerCase();
+    const nameLower = p.providerName?.toLowerCase() ?? '';
+    if (DEBUG_NAMES.some(n => idLower.includes(n) || nameLower.includes(n))) {
+      const pending = Math.max((p.totalProviderExpected ?? 0) - p.providerPaid - p.providerBalanceOwed, 0);
+      console.log(
+        '[pending-debug]',
+        `procedureId="${p.procedureId}"`,
+        `provider="${p.providerName}"`,
+        `totalProviderExpected=${p.totalProviderExpected ?? 'MISSING'}`,
+        `providerPaid=${p.providerPaid}`,
+        `providerBalanceOwed=${p.providerBalanceOwed}`,
+        `→ pendingReceivable=${pending}`,
+      );
+    }
+  });
+  // ── End debug logging ──
+
+  return rows;
 }
 
 export interface InviteEmailPayload {

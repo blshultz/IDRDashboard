@@ -92,7 +92,18 @@ export default function DoctorDashboard({ procedures, providerName, onRefetch }:
     ? ((summary.providerBalanceOwed / summary.providerOwed) * 100).toFixed(1)
     : '0';
 
-  /** Rows with a positive pending receivable, sorted by amount descending */
+  /** Only show rows where something has already been collected for the doctor.
+   *  Zero-providerOwed rows (e.g. pure-award procedures with no deposits yet)
+   *  are excluded from the Collected Funds table — they may still appear below
+   *  in Pending Receivables if they have a positive pending amount. */
+  const collectedRows = useMemo(
+    () => procedures.filter(p => p.providerOwed > 0),
+    [procedures]
+  );
+
+  /** Rows with a positive pending receivable, sorted by amount descending.
+   *  Independent of collectedRows — a procedure can appear here even if
+   *  providerOwed is $0. */
   const pendingRows = useMemo(
     () =>
       procedures
@@ -186,12 +197,12 @@ export default function DoctorDashboard({ procedures, providerName, onRefetch }:
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-slate-700">Collected Funds Procedure Details</h2>
           <span className="text-xs text-slate-400 bg-slate-100 px-2.5 py-1 rounded-full">
-            {procedures.length} procedure{procedures.length !== 1 ? 's' : ''}
+            {collectedRows.length} procedure{collectedRows.length !== 1 ? 's' : ''}
           </span>
         </div>
-        {procedures.length === 0 ? (
+        {collectedRows.length === 0 ? (
           <div className="bg-white rounded-xl border border-slate-200 p-12 text-center">
-            <p className="text-slate-400 text-sm">No procedures found for your account.</p>
+            <p className="text-slate-400 text-sm">No collected procedures found for your account.</p>
           </div>
         ) : (
           <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
@@ -208,7 +219,7 @@ export default function DoctorDashboard({ procedures, providerName, onRefetch }:
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {procedures.map(p => <CollectedRow key={p.procedureId} procedure={p} />)}
+                  {collectedRows.map(p => <CollectedRow key={p.procedureId} procedure={p} />)}
                 </tbody>
                 <tfoot className="border-t-2 border-slate-200 bg-slate-50">
                   <tr>
