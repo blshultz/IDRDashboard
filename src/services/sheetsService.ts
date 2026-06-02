@@ -30,6 +30,36 @@ export async function fetchProcedures(): Promise<Procedure[]> {
   return json.rows as Procedure[];
 }
 
+export interface InviteEmailPayload {
+  email: string;
+  displayName: string;
+  providerName: string | null;
+  inviteLink: string;
+  /** Human-readable expiry date, e.g. "June 8, 2026" */
+  expiresAt: string;
+}
+
+/**
+ * Sends the invitation email via the send-invite-email edge function.
+ * The Make webhook URL is held server-side in the function's environment —
+ * it is never exposed in the client bundle.
+ */
+export async function sendInviteEmail(payload: InviteEmailPayload): Promise<void> {
+  const jwt = await getJwt();
+  const res = await fetch(`${SUPABASE_URL}/functions/v1/send-invite-email`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${jwt}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({})) as { error?: string };
+    throw new Error(body.error ?? `Request failed (${res.status})`);
+  }
+}
+
 /** Returns the sorted, deduplicated list of provider names from the sheet.
  *  Only succeeds when called by an authenticated admin. */
 export async function fetchProviderNames(): Promise<string[]> {

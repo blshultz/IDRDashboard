@@ -4,7 +4,7 @@ import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { UserRoleRow, Invitation, Role } from '../types';
 import { formatDateTime } from '../utils/format';
-import { fetchProviderNames } from '../services/sheetsService';
+import { fetchProviderNames, sendInviteEmail } from '../services/sheetsService';
 
 interface LoginInfo {
   last_sign_in_at: string | null;
@@ -360,6 +360,8 @@ export default function UserManagement() {
   const [editingUser, setEditingUser] = useState<UserRoleRow | null>(null);
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [emailingId, setEmailingId] = useState<string | null>(null);
+  const [emailResults, setEmailResults] = useState<Record<string, 'sent' | 'failed'>>({});
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -424,6 +426,30 @@ export default function UserManagement() {
     await supabase.from('invitations').delete().eq('id', invite.id);
     setConfirmDeleteId(null);
     load();
+  }
+
+  async function handleEmailInvite(invite: Invitation) {
+    setEmailingId(invite.id);
+    try {
+      await sendInviteEmail({
+        email:        invite.email,
+        displayName:  invite.display_name,
+        providerName: invite.provider_name,
+        inviteLink:   getInviteLink(invite.token),
+        expiresAt:    new Date(invite.expires_at).toLocaleDateString('en-US', {
+          month: 'long', day: 'numeric', year: 'numeric',
+        }),
+      });
+      setEmailResults(r => ({ ...r, [invite.id]: 'sent' }));
+    } catch {
+      setEmailResults(r => ({ ...r, [invite.id]: 'failed' }));
+    } finally {
+      setEmailingId(null);
+      // Auto-clear the status badge after 6 seconds
+      setTimeout(() => {
+        setEmailResults(r => { const next = { ...r }; delete next[invite.id]; return next; });
+      }, 6000);
+    }
   }
 
   // Build a map of email → accepted_at for cross-referencing active users
@@ -653,6 +679,32 @@ export default function UserManagement() {
                             </div>
                           ) : (
                             <div className="flex items-center justify-end gap-3">
+                              {/* Email status feedback */}
+                              {emailResults[invite.id] === 'sent' && (
+                                <span className="text-xs text-green-600 flex items-center gap-1">
+                                  <Check className="w-3.5 h-3.5" />Invitation email sent.
+                                </span>
+                              )}
+                              {emailResults[invite.id] === 'failed' && (
+                                <span className="text-xs text-red-600">Email failed. Please copy the link manually.</span>
+                              )}
+                              {/* Email invite button */}
+                              {!emailResults[invite.id] && (
+                                emailingId === invite.id ? (
+                                  <span className="text-xs flex items-center gap-1.5 text-slate-400">
+                                    <span className="w-3.5 h-3.5 border-2 border-slate-300 border-t-slate-500 rounded-full animate-spin inline-block" />
+                                    Sending…
+                                  </span>
+                                ) : (
+                                  <button
+                                    onClick={() => handleEmailInvite(invite)}
+                                    disabled={!!emailingId}
+                                    className="text-xs flex items-center gap-1 text-slate-600 hover:text-blue-600 disabled:opacity-40 transition-colors"
+                                  >
+                                    <Mail className="w-3.5 h-3.5" />Email invite
+                                  </button>
+                                )
+                              )}
                               <button
                                 onClick={() => copyToClipboard(getInviteLink(invite.token))}
                                 className="text-xs flex items-center gap-1 text-slate-500 hover:text-blue-600 transition-colors"
