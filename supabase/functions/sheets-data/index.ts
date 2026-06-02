@@ -216,10 +216,76 @@ Deno.serve(async (req: Request) => {
     }
 
     const url = new URL(req.url);
+
+    // ?rawdump=1 — admin only. Returns the exact column keys from the sheet
+    // AND the full unparsed raw object for every row whose Procedure ID
+    // contains "lewis" (case-insensitive), plus a field-resolution report
+    // showing exactly which key each target field name resolved to and what
+    // raw value was found before any parseNumber() conversion.
+    if (url.searchParams.get("rawdump") === "1") {
+      if (!isAdmin) return json({ error: "Forbidden" }, 403);
+
+      const rawData = sheetData;
+      let columnKeys: string[] = [];
+      let targetRawRows: Record<string, unknown>[] = [];
+
+      if (Array.isArray(rawData.rows) && rawData.rows.length > 0 && typeof rawData.rows[0] === "object") {
+        const rawRows = rawData.rows as Record<string, unknown>[];
+        columnKeys = Object.keys(rawRows[0]);
+
+        // Find rows matching "lewis" in the Procedure ID (any key spelling)
+        targetRawRows = rawRows.filter(row => {
+          const keys = Object.keys(row);
+          const pidKey = keys.find(k => k.trim().toLowerCase() === "procedure id");
+          const pid = pidKey ? String(row[pidKey] ?? "") : "";
+          return pid.toLowerCase().includes("lewis");
+        });
+
+        // For each target row, show the field-resolution report:
+        // which key the target field names resolved to, and the raw value.
+        const TARGET_FIELDS = [
+          "Total Provider Expected",
+          "Provider Paid",
+          "Provider Open Balance",
+        ];
+        const fieldResolution = TARGET_FIELDS.map(fieldName => {
+          const normalised = fieldName.trim().toLowerCase();
+          // Find the actual key in the sheet that matches (after trim+lowercase)
+          const actualKey = columnKeys.find(k => k.trim().toLowerCase() === normalised) ?? null;
+          // Sample value from first matching target row
+          const rawValue = actualKey && targetRawRows.length > 0
+            ? targetRawRows[0][actualKey]
+            : undefined;
+          return {
+            lookupName:   fieldName,
+            actualKey,    // null if not found at all in the sheet
+            rawValue,     // exact value before parseNumber()
+            parsed:       rawValue === undefined || rawValue === null || rawValue === ""
+                            ? 0
+                            : parseNumber(rawValue),
+          };
+        });
+
+        return json({
+          columnKeys,         // every column header exactly as the sheet returned it
+          targetRawRows,      // full unparsed row objects for "lewis" matches
+          fieldResolution,    // lookup table: target field → actual key → raw value → parsed
+          parsedMatchRows: allRows.filter(r => r.procedureId.toLowerCase().includes("lewis")),
+        });
+      }
+
+      // 2-D array path
+      if (Array.isArray(rawData.values) && (rawData.values as unknown[][]).length > 0) {
+        const values = rawData.values as unknown[][];
+        columnKeys = (values[0] as unknown[]).map(h => String(h ?? "").trim());
+        return json({ columnKeys, note: "2-D array format; check header spelling in columnKeys" });
+      }
+
+      return json({ error: "Unrecognised sheet response format", keys: Object.keys(rawData) });
+    }
+
     if (url.searchParams.get("debug") === "1") {
       if (!isAdmin) return json({ error: "Forbidden" }, 403);
-      // Return raw-parse diagnostic for all rows: lets admins see exactly what
-      // was parsed for each field without exposing sheet internals to doctors.
       const debugRows = allRows.map(r => {
         const pending = Math.max(r.totalProviderExpected - r.providerPaid - r.providerBalanceOwed, 0);
         return {
