@@ -202,24 +202,37 @@ function EditModal({
   providerNames: string[];
 }) {
   const [displayName, setDisplayName] = useState(user.display_name);
+  const [role, setRole] = useState<Role>(user.role);
   const [providerName, setProviderName] = useState(user.provider_name ?? '');
+  const [isActive, setIsActive] = useState(user.is_active);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // If the stored provider_name isn't in the current list (e.g. old data), add it as an option
-  const providerOptions = user.provider_name && !providerNames.includes(user.provider_name)
-    ? [user.provider_name, ...providerNames]
-    : providerNames;
+  // When role switches away from doctor, clear the provider selection
+  function handleRoleChange(r: Role) {
+    setRole(r);
+    if (r !== 'doctor') setProviderName('');
+  }
+
+  // If the stored provider_name isn't in the live list (old/backfilled data),
+  // prepend it so the current value stays selected until the admin changes it.
+  const providerOptions: string[] =
+    providerName && !providerNames.includes(providerName)
+      ? [providerName, ...providerNames]
+      : providerNames;
 
   async function handleSave() {
     setLoading(true);
     setError(null);
     try {
+      const trimmedProvider = role === 'doctor' ? providerName.trim() : '';
       const { error: err } = await supabase.from('user_roles').update({
         display_name: displayName.trim(),
-        provider_name: providerName.trim() || null,
-        provider_id: providerName.trim()
-          ? providerName.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
+        role,
+        is_active: isActive,
+        provider_name: trimmedProvider || null,
+        provider_id: trimmedProvider
+          ? trimmedProvider.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
           : null,
       }).eq('email', user.email);
       if (err) throw new Error(err.message);
@@ -236,10 +249,15 @@ function EditModal({
     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-md p-6">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-lg font-semibold text-slate-800">Edit user</h2>
+          <div>
+            <h2 className="text-lg font-semibold text-slate-800">Edit user</h2>
+            <p className="text-xs text-slate-400 mt-0.5">{user.email}</p>
+          </div>
           <button onClick={onClose} className="text-slate-400 hover:text-slate-600"><X className="w-5 h-5" /></button>
         </div>
         <div className="space-y-4">
+
+          {/* Display name */}
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1.5">Display name</label>
             <input
@@ -249,7 +267,29 @@ function EditModal({
               className="w-full px-4 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
-          {user.role === 'doctor' && (
+
+          {/* Role */}
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1.5">Role</label>
+            <div className="flex gap-3">
+              {(['doctor', 'admin'] as Role[]).map(r => (
+                <label
+                  key={r}
+                  className={`flex-1 flex items-center gap-2 border rounded-lg p-3 cursor-pointer transition-all ${role === r ? 'border-blue-500 bg-blue-50' : 'border-slate-200 hover:border-slate-300'}`}
+                >
+                  <input type="radio" name="edit-role" value={r} checked={role === r} onChange={() => handleRoleChange(r)} className="sr-only" />
+                  {r === 'doctor'
+                    ? <Stethoscope className={`w-4 h-4 ${role === r ? 'text-blue-600' : 'text-slate-400'}`} />
+                    : <Shield className={`w-4 h-4 ${role === r ? 'text-blue-600' : 'text-slate-400'}`} />
+                  }
+                  <span className={`text-sm font-medium capitalize ${role === r ? 'text-blue-700' : 'text-slate-600'}`}>{r}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          {/* Provider — only visible when role is doctor */}
+          {role === 'doctor' && (
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1.5">Provider Name</label>
               <select
@@ -257,17 +297,39 @@ function EditModal({
                 onChange={e => setProviderName(e.target.value)}
                 className="w-full px-4 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
               >
-                <option value="">— No provider —</option>
+                <option value="">— Select provider —</option>
                 {providerOptions.map(name => (
                   <option key={name} value={name}>{name}</option>
                 ))}
+                {providerOptions.length === 0 && (
+                  <option value="" disabled>Loading providers…</option>
+                )}
               </select>
               <p className="text-xs text-slate-400 mt-1">Must match the provider name in the Google Sheet exactly.</p>
             </div>
           )}
+
+          {/* Active status */}
+          <div className="flex items-center justify-between rounded-lg border border-slate-200 px-4 py-3">
+            <div>
+              <p className="text-sm font-medium text-slate-700">Account active</p>
+              <p className="text-xs text-slate-400 mt-0.5">Inactive users cannot sign in</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setIsActive(v => !v)}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 ${isActive ? 'bg-blue-600' : 'bg-slate-200'}`}
+              role="switch"
+              aria-checked={isActive}
+            >
+              <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${isActive ? 'translate-x-6' : 'translate-x-1'}`} />
+            </button>
+          </div>
+
           {error && (
             <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3 text-sm text-red-700">{error}</div>
           )}
+
           <div className="flex gap-3 pt-1">
             <button onClick={onClose} className="flex-1 py-2.5 rounded-lg border border-slate-200 text-sm font-medium text-slate-600 hover:bg-slate-50">
               Cancel
@@ -278,7 +340,7 @@ function EditModal({
               className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white rounded-lg text-sm font-medium transition-colors"
             >
               {loading ? <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Check className="w-4 h-4" />}
-              Save
+              Save changes
             </button>
           </div>
         </div>
