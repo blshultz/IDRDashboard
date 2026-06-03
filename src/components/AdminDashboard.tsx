@@ -36,29 +36,29 @@ function PieChartCard({ claimsTotal, awardsTotal }: { claimsTotal: number; award
   const claimsArc = total > 0 ? (claimsTotal / total) * circ : circ / 2;
   const awardsArc = total > 0 ? (awardsTotal / total) * circ : circ / 2;
   const claimsPct = total > 0 ? Math.round((claimsTotal / total) * 100) : 0;
-  const awardsPct = total > 0 ? 100 - claimsPct : 0;
+  const awardsPct = 100 - claimsPct;
 
   return (
-    <div className="bg-white rounded-xl border border-blue-100 shadow-sm p-4 flex flex-col gap-2">
-      <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide leading-none">
+    <div className="rounded-xl border p-5 bg-blue-50 border-blue-100 transition-shadow hover:shadow-md">
+      <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-3">
         Claims vs Awards
       </p>
       <div className="flex items-center gap-3">
         {/* Donut chart — rotated -90° so arc starts at 12 o'clock */}
-        <svg width="68" height="68" viewBox="0 0 68 68" className="flex-shrink-0" style={{ transform: 'rotate(-90deg)' }}>
-          {/* Track */}
-          <circle cx="34" cy="34" r={r} fill="none" stroke="#dbeafe" strokeWidth={sw} />
-          {/* Claims arc (blue-600) */}
+        <svg width="64" height="64" viewBox="0 0 64 64" className="flex-shrink-0" style={{ transform: 'rotate(-90deg)' }}>
+          {/* Track (blue-200) */}
+          <circle cx="32" cy="32" r={r} fill="none" stroke="#bfdbfe" strokeWidth={sw} />
+          {/* Claims arc — blue-600 */}
           <circle
-            cx="34" cy="34" r={r} fill="none"
+            cx="32" cy="32" r={r} fill="none"
             stroke="#2563eb" strokeWidth={sw}
             strokeDasharray={`${claimsArc} ${circ}`}
             strokeLinecap="butt"
           />
-          {/* Awards arc (blue-300) — offset to start after claims arc */}
+          {/* Awards arc — teal-500, starts after claims arc */}
           <circle
-            cx="34" cy="34" r={r} fill="none"
-            stroke="#93c5fd" strokeWidth={sw}
+            cx="32" cy="32" r={r} fill="none"
+            stroke="#14b8a6" strokeWidth={sw}
             strokeDasharray={`${awardsArc} ${circ}`}
             strokeDashoffset={-claimsArc}
             strokeLinecap="butt"
@@ -66,22 +66,26 @@ function PieChartCard({ claimsTotal, awardsTotal }: { claimsTotal: number; award
         </svg>
 
         {/* Legend */}
-        <div className="flex flex-col gap-2 min-w-0 flex-1">
+        <div className="flex flex-col gap-2.5 min-w-0 flex-1">
           <div>
-            <div className="flex items-center gap-1.5 mb-0.5">
-              <span className="w-2 h-2 rounded-sm bg-blue-600 flex-shrink-0" />
-              <span className="text-xs text-slate-500">Claims</span>
-              <span className="text-xs text-slate-400 ml-auto">{claimsPct}%</span>
+            <div className="flex items-center justify-between gap-1 mb-0.5">
+              <div className="flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-sm bg-blue-600 flex-shrink-0" />
+                <span className="text-xs text-slate-500">Claims</span>
+              </div>
+              <span className="text-xs text-slate-400">{claimsPct}%</span>
             </div>
-            <p className="text-sm font-bold text-slate-800 tabular-nums pl-3.5">{formatCurrency(claimsTotal)}</p>
+            <p className="text-sm font-bold text-blue-700 tabular-nums pl-3.5">{formatCurrency(claimsTotal)}</p>
           </div>
           <div>
-            <div className="flex items-center gap-1.5 mb-0.5">
-              <span className="w-2 h-2 rounded-sm bg-blue-300 flex-shrink-0" />
-              <span className="text-xs text-slate-500">Awards</span>
-              <span className="text-xs text-slate-400 ml-auto">{awardsPct}%</span>
+            <div className="flex items-center justify-between gap-1 mb-0.5">
+              <div className="flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-sm bg-teal-500 flex-shrink-0" />
+                <span className="text-xs text-slate-500">Awards</span>
+              </div>
+              <span className="text-xs text-slate-400">{awardsPct}%</span>
             </div>
-            <p className="text-sm font-bold text-slate-800 tabular-nums pl-3.5">{formatCurrency(awardsTotal)}</p>
+            <p className="text-sm font-bold text-teal-700 tabular-nums pl-3.5">{formatCurrency(awardsTotal)}</p>
           </div>
         </div>
       </div>
