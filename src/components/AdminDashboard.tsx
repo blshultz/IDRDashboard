@@ -194,32 +194,32 @@ function ProviderSection({ providerName, procedures }: { providerName: string; p
                 {/* ── Section labels ── */}
                 <tr className="border-b border-slate-200">
                   <th className="px-3 py-1.5 bg-slate-50 border-r border-slate-200" />
-                  <th colSpan={6} className="px-2 py-1 text-center text-xs font-semibold text-slate-500 uppercase tracking-wide bg-slate-50 border-r border-slate-200">Expected / Totals</th>
-                  <th colSpan={7} className="px-2 py-1 text-center text-xs font-semibold text-blue-600 uppercase tracking-wide bg-blue-50 border-r border-blue-100">Deposited Funds</th>
-                  <th colSpan={6} className="px-2 py-1 text-center text-xs font-semibold text-amber-600 uppercase tracking-wide bg-amber-50">Undeposited Funds</th>
+                  <th colSpan={6} className="px-2 py-1 text-center text-xs font-semibold text-slate-500 uppercase tracking-wide bg-slate-50 border-r border-slate-200">Expected</th>
+                  <th colSpan={7} className="px-2 py-1 text-center text-xs font-semibold text-blue-600 uppercase tracking-wide bg-blue-50 border-r border-blue-100">Collected</th>
+                  <th colSpan={6} className="px-2 py-1 text-center text-xs font-semibold text-amber-600 uppercase tracking-wide bg-amber-50">Pending</th>
                 </tr>
                 {/* ── Column headers ── */}
                 <tr className="border-b border-slate-200">
                   <th className="px-2 py-1.5 text-xs font-semibold text-slate-500 uppercase tracking-wide bg-slate-50 border-r border-slate-200">Procedure ID</th>
                   <th className="px-2 py-1.5 text-xs font-semibold text-slate-500 uppercase tracking-wide text-right bg-slate-50 leading-tight">Total Allowed</th>
-                  <th className="px-2 py-1.5 text-xs font-semibold text-slate-500 uppercase tracking-wide text-right bg-slate-50 leading-tight">Claims Allwd</th>
-                  <th className="px-2 py-1.5 text-xs font-semibold text-slate-500 uppercase tracking-wide text-right bg-slate-50 leading-tight">Awards Allwd</th>
-                  <th className="px-2 py-1.5 text-xs font-semibold text-slate-500 uppercase tracking-wide text-right bg-slate-50 leading-tight">Prov. Expected</th>
-                  <th className="px-2 py-1.5 text-xs font-semibold text-slate-500 uppercase tracking-wide text-right bg-slate-50 leading-tight">IDR Expected</th>
-                  <th className="px-2 py-1.5 text-xs font-semibold text-slate-500 uppercase tracking-wide text-right bg-slate-50 leading-tight border-r border-slate-200">BHAC Net Exp.</th>
-                  <th className="px-2 py-1.5 text-xs font-semibold text-blue-500 uppercase tracking-wide text-right bg-blue-50 leading-tight">Total Collected</th>
-                  <th className="px-2 py-1.5 text-xs font-semibold text-blue-500 uppercase tracking-wide text-right bg-blue-50 leading-tight">Coll. Claims</th>
-                  <th className="px-2 py-1.5 text-xs font-semibold text-blue-500 uppercase tracking-wide text-right bg-blue-50 leading-tight">Coll. Awards</th>
-                  <th className="px-2 py-1.5 text-xs font-semibold text-blue-500 uppercase tracking-wide text-right bg-blue-50 leading-tight">Prov. Payable</th>
-                  <th className="px-2 py-1.5 text-xs font-semibold text-blue-500 uppercase tracking-wide text-right bg-blue-50 leading-tight">Prov. Open Bal.</th>
-                  <th className="px-2 py-1.5 text-xs font-semibold text-blue-500 uppercase tracking-wide text-right bg-blue-50 leading-tight">IDR Earned</th>
-                  <th className="px-2 py-1.5 text-xs font-semibold text-blue-500 uppercase tracking-wide text-right bg-blue-50 leading-tight border-r border-blue-100">BHAC Retained</th>
-                  <th className="px-2 py-1.5 text-xs font-semibold text-amber-500 uppercase tracking-wide text-right bg-amber-50 leading-tight">Total Pending</th>
-                  <th className="px-2 py-1.5 text-xs font-semibold text-amber-500 uppercase tracking-wide text-right bg-amber-50 leading-tight">Pend. Claims</th>
-                  <th className="px-2 py-1.5 text-xs font-semibold text-amber-500 uppercase tracking-wide text-right bg-amber-50 leading-tight">Pend. Awards</th>
-                  <th className="px-2 py-1.5 text-xs font-semibold text-amber-500 uppercase tracking-wide text-right bg-amber-50 leading-tight">Prov. Pend. Recv.</th>
-                  <th className="px-2 py-1.5 text-xs font-semibold text-amber-500 uppercase tracking-wide text-right bg-amber-50 leading-tight">IDR Pending</th>
-                  <th className="px-2 py-1.5 text-xs font-semibold text-amber-500 uppercase tracking-wide text-right bg-amber-50 leading-tight">BHAC Recv.</th>
+                  <th className="px-2 py-1.5 text-xs font-semibold text-slate-500 uppercase tracking-wide text-right bg-slate-50 leading-tight">Claims</th>
+                  <th className="px-2 py-1.5 text-xs font-semibold text-slate-500 uppercase tracking-wide text-right bg-slate-50 leading-tight">Awards</th>
+                  <th className="px-2 py-1.5 text-xs font-semibold text-slate-500 uppercase tracking-wide text-right bg-slate-50 leading-tight">Provider</th>
+                  <th className="px-2 py-1.5 text-xs font-semibold text-slate-500 uppercase tracking-wide text-right bg-slate-50 leading-tight">IDR</th>
+                  <th className="px-2 py-1.5 text-xs font-semibold text-slate-500 uppercase tracking-wide text-right bg-slate-50 leading-tight border-r border-slate-200">BHAC Net</th>
+                  <th className="px-2 py-1.5 text-xs font-semibold text-blue-500 uppercase tracking-wide text-right bg-blue-50 leading-tight">Total</th>
+                  <th className="px-2 py-1.5 text-xs font-semibold text-blue-500 uppercase tracking-wide text-right bg-blue-50 leading-tight">Claims</th>
+                  <th className="px-2 py-1.5 text-xs font-semibold text-blue-500 uppercase tracking-wide text-right bg-blue-50 leading-tight">Awards</th>
+                  <th className="px-2 py-1.5 text-xs font-semibold text-blue-500 uppercase tracking-wide text-right bg-blue-50 leading-tight">Provider</th>
+                  <th className="px-2 py-1.5 text-xs font-semibold text-blue-500 uppercase tracking-wide text-right bg-blue-50 leading-tight">Open Bal.</th>
+                  <th className="px-2 py-1.5 text-xs font-semibold text-blue-500 uppercase tracking-wide text-right bg-blue-50 leading-tight">IDR</th>
+                  <th className="px-2 py-1.5 text-xs font-semibold text-blue-500 uppercase tracking-wide text-right bg-blue-50 leading-tight border-r border-blue-100">BHAC</th>
+                  <th className="px-2 py-1.5 text-xs font-semibold text-amber-500 uppercase tracking-wide text-right bg-amber-50 leading-tight">Total</th>
+                  <th className="px-2 py-1.5 text-xs font-semibold text-amber-500 uppercase tracking-wide text-right bg-amber-50 leading-tight">Claims</th>
+                  <th className="px-2 py-1.5 text-xs font-semibold text-amber-500 uppercase tracking-wide text-right bg-amber-50 leading-tight">Awards</th>
+                  <th className="px-2 py-1.5 text-xs font-semibold text-amber-500 uppercase tracking-wide text-right bg-amber-50 leading-tight">Provider</th>
+                  <th className="px-2 py-1.5 text-xs font-semibold text-amber-500 uppercase tracking-wide text-right bg-amber-50 leading-tight">IDR</th>
+                  <th className="px-2 py-1.5 text-xs font-semibold text-amber-500 uppercase tracking-wide text-right bg-amber-50 leading-tight">BHAC</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 whitespace-nowrap">
