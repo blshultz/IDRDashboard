@@ -113,19 +113,24 @@ function ProviderSection({ providerName, procedures }: { providerName: string; p
           </div>
         </div>
 
-        {/* Two-section summary — visible on large screens */}
-        <div className="hidden lg:flex items-start gap-0 flex-1 min-w-0">
+        {/* Total Allowed standalone + two-section summary — visible on large screens */}
+        <div className="hidden lg:flex items-center gap-0 flex-1 min-w-0">
+
+          {/* ── Total Allowed (standalone) ── */}
+          <div className="flex-shrink-0 pr-5 text-right">
+            <p className="text-xs text-slate-400 leading-tight">Total Allowed</p>
+            <p className="text-base font-bold text-blue-700 tabular-nums mt-0.5">{formatCurrency(summary.procedureTotal)}</p>
+          </div>
+
+          {/* Divider */}
+          <div className="w-px self-stretch bg-slate-200 mx-1 flex-shrink-0" />
 
           {/* ── Deposited Funds ── */}
-          <div className="flex-1 min-w-0 pr-4">
+          <div className="flex-1 min-w-0 px-4">
             <p className="text-xs font-semibold text-blue-600 uppercase tracking-wide mb-2">Deposited Funds</p>
-            <div className="grid grid-cols-5 gap-2 text-right">
+            <div className="grid grid-cols-4 gap-2 text-right">
               <div>
-                <p className="text-xs text-slate-400 leading-tight">Total Allowed</p>
-                <p className="text-xs font-semibold text-blue-700 tabular-nums mt-0.5">{formatCurrency(summary.procedureTotal)}</p>
-              </div>
-              <div>
-                <p className="text-xs text-slate-400 leading-tight">Deposited</p>
+                <p className="text-xs text-slate-400 leading-tight">Collected</p>
                 <p className="text-xs font-semibold text-green-700 tabular-nums mt-0.5">{formatCurrency(summary.totalDeposited)}</p>
               </div>
               <div>
@@ -151,7 +156,7 @@ function ProviderSection({ providerName, procedures }: { providerName: string; p
             <p className="text-xs font-semibold text-amber-600 uppercase tracking-wide mb-2">Undeposited Funds</p>
             <div className="grid grid-cols-4 gap-2 text-right">
               <div>
-                <p className="text-xs text-slate-400 leading-tight">Undeposited</p>
+                <p className="text-xs text-slate-400 leading-tight">Pending</p>
                 <p className={`text-xs font-semibold tabular-nums mt-0.5 ${summary.undepositedTotal > 0 ? 'text-amber-700' : 'text-slate-600'}`}>{formatCurrency(summary.undepositedTotal)}</p>
               </div>
               <div>
