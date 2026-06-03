@@ -189,94 +189,94 @@ function ProviderSection({ providerName, procedures }: { providerName: string; p
       {open && (
         <div className="border-t border-slate-100 px-6 pb-6 pt-4">
           <div className="overflow-x-auto rounded-lg border border-slate-200">
-            <table className="w-full text-left text-sm whitespace-nowrap">
+            <table className="w-full text-left text-xs whitespace-nowrap">
               <thead>
                 {/* ── Section labels ── */}
                 <tr className="border-b border-slate-200">
                   <th className="px-3 py-1.5 bg-slate-50 border-r border-slate-200" />
-                  <th colSpan={6} className="px-3 py-1.5 text-center text-xs font-semibold text-slate-500 uppercase tracking-wide bg-slate-50 border-r border-slate-200">Expected / Totals</th>
-                  <th colSpan={7} className="px-3 py-1.5 text-center text-xs font-semibold text-blue-600 uppercase tracking-wide bg-blue-50 border-r border-blue-100">Deposited Funds</th>
-                  <th colSpan={6} className="px-3 py-1.5 text-center text-xs font-semibold text-amber-600 uppercase tracking-wide bg-amber-50">Undeposited Funds</th>
+                  <th colSpan={6} className="px-2 py-1 text-center text-xs font-semibold text-slate-500 uppercase tracking-wide bg-slate-50 border-r border-slate-200">Expected / Totals</th>
+                  <th colSpan={7} className="px-2 py-1 text-center text-xs font-semibold text-blue-600 uppercase tracking-wide bg-blue-50 border-r border-blue-100">Deposited Funds</th>
+                  <th colSpan={6} className="px-2 py-1 text-center text-xs font-semibold text-amber-600 uppercase tracking-wide bg-amber-50">Undeposited Funds</th>
                 </tr>
                 {/* ── Column headers ── */}
                 <tr className="border-b border-slate-200">
-                  <th className="px-3 py-2 text-xs font-semibold text-slate-500 uppercase tracking-wide bg-slate-50 border-r border-slate-200">Procedure ID</th>
-                  <th className="px-3 py-2 text-xs font-semibold text-slate-500 uppercase tracking-wide text-right bg-slate-50">Total Allowed</th>
-                  <th className="px-3 py-2 text-xs font-semibold text-slate-500 uppercase tracking-wide text-right bg-slate-50">Claims Allowed</th>
-                  <th className="px-3 py-2 text-xs font-semibold text-slate-500 uppercase tracking-wide text-right bg-slate-50">Awards Allowed</th>
-                  <th className="px-3 py-2 text-xs font-semibold text-slate-500 uppercase tracking-wide text-right bg-slate-50">Provider Expected</th>
-                  <th className="px-3 py-2 text-xs font-semibold text-slate-500 uppercase tracking-wide text-right bg-slate-50">IDR Expected</th>
-                  <th className="px-3 py-2 text-xs font-semibold text-slate-500 uppercase tracking-wide text-right bg-slate-50 border-r border-slate-200">BHAC Net Expected</th>
-                  <th className="px-3 py-2 text-xs font-semibold text-blue-500 uppercase tracking-wide text-right bg-blue-50">Total Collected</th>
-                  <th className="px-3 py-2 text-xs font-semibold text-blue-500 uppercase tracking-wide text-right bg-blue-50">Collected Claims</th>
-                  <th className="px-3 py-2 text-xs font-semibold text-blue-500 uppercase tracking-wide text-right bg-blue-50">Collected Awards</th>
-                  <th className="px-3 py-2 text-xs font-semibold text-blue-500 uppercase tracking-wide text-right bg-blue-50">Provider Payable</th>
-                  <th className="px-3 py-2 text-xs font-semibold text-blue-500 uppercase tracking-wide text-right bg-blue-50">Provider Open Balance</th>
-                  <th className="px-3 py-2 text-xs font-semibold text-blue-500 uppercase tracking-wide text-right bg-blue-50">IDR Earned</th>
-                  <th className="px-3 py-2 text-xs font-semibold text-blue-500 uppercase tracking-wide text-right bg-blue-50 border-r border-blue-100">BHAC Retained</th>
-                  <th className="px-3 py-2 text-xs font-semibold text-amber-500 uppercase tracking-wide text-right bg-amber-50">Total Pending</th>
-                  <th className="px-3 py-2 text-xs font-semibold text-amber-500 uppercase tracking-wide text-right bg-amber-50">Pending Claims</th>
-                  <th className="px-3 py-2 text-xs font-semibold text-amber-500 uppercase tracking-wide text-right bg-amber-50">Pending Awards</th>
-                  <th className="px-3 py-2 text-xs font-semibold text-amber-500 uppercase tracking-wide text-right bg-amber-50">Provider Pending Receivables</th>
-                  <th className="px-3 py-2 text-xs font-semibold text-amber-500 uppercase tracking-wide text-right bg-amber-50">IDR Pending</th>
-                  <th className="px-3 py-2 text-xs font-semibold text-amber-500 uppercase tracking-wide text-right bg-amber-50">BHAC Receivable</th>
+                  <th className="px-2 py-1.5 text-xs font-semibold text-slate-500 uppercase tracking-wide bg-slate-50 border-r border-slate-200">Procedure ID</th>
+                  <th className="px-2 py-1.5 text-xs font-semibold text-slate-500 uppercase tracking-wide text-right bg-slate-50">Total Allowed</th>
+                  <th className="px-2 py-1.5 text-xs font-semibold text-slate-500 uppercase tracking-wide text-right bg-slate-50">Claims Allowed</th>
+                  <th className="px-2 py-1.5 text-xs font-semibold text-slate-500 uppercase tracking-wide text-right bg-slate-50">Awards Allowed</th>
+                  <th className="px-2 py-1.5 text-xs font-semibold text-slate-500 uppercase tracking-wide text-right bg-slate-50">Provider Expected</th>
+                  <th className="px-2 py-1.5 text-xs font-semibold text-slate-500 uppercase tracking-wide text-right bg-slate-50">IDR Expected</th>
+                  <th className="px-2 py-1.5 text-xs font-semibold text-slate-500 uppercase tracking-wide text-right bg-slate-50 border-r border-slate-200">BHAC Net Expected</th>
+                  <th className="px-2 py-1.5 text-xs font-semibold text-blue-500 uppercase tracking-wide text-right bg-blue-50">Total Collected</th>
+                  <th className="px-2 py-1.5 text-xs font-semibold text-blue-500 uppercase tracking-wide text-right bg-blue-50">Collected Claims</th>
+                  <th className="px-2 py-1.5 text-xs font-semibold text-blue-500 uppercase tracking-wide text-right bg-blue-50">Collected Awards</th>
+                  <th className="px-2 py-1.5 text-xs font-semibold text-blue-500 uppercase tracking-wide text-right bg-blue-50">Provider Payable</th>
+                  <th className="px-2 py-1.5 text-xs font-semibold text-blue-500 uppercase tracking-wide text-right bg-blue-50">Provider Open Balance</th>
+                  <th className="px-2 py-1.5 text-xs font-semibold text-blue-500 uppercase tracking-wide text-right bg-blue-50">IDR Earned</th>
+                  <th className="px-2 py-1.5 text-xs font-semibold text-blue-500 uppercase tracking-wide text-right bg-blue-50 border-r border-blue-100">BHAC Retained</th>
+                  <th className="px-2 py-1.5 text-xs font-semibold text-amber-500 uppercase tracking-wide text-right bg-amber-50">Total Pending</th>
+                  <th className="px-2 py-1.5 text-xs font-semibold text-amber-500 uppercase tracking-wide text-right bg-amber-50">Pending Claims</th>
+                  <th className="px-2 py-1.5 text-xs font-semibold text-amber-500 uppercase tracking-wide text-right bg-amber-50">Pending Awards</th>
+                  <th className="px-2 py-1.5 text-xs font-semibold text-amber-500 uppercase tracking-wide text-right bg-amber-50">Provider Pending Receivables</th>
+                  <th className="px-2 py-1.5 text-xs font-semibold text-amber-500 uppercase tracking-wide text-right bg-amber-50">IDR Pending</th>
+                  <th className="px-2 py-1.5 text-xs font-semibold text-amber-500 uppercase tracking-wide text-right bg-amber-50">BHAC Receivable</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {procedures.map(p => (
                   <tr key={p.procedureId} className="hover:bg-slate-50/80 transition-colors">
-                    <td className="px-3 py-2 font-mono text-xs text-slate-700 border-r border-slate-200">{p.procedureId}</td>
+                    <td className="px-2 py-1.5 font-mono text-xs text-slate-700 border-r border-slate-200">{p.procedureId}</td>
                     {/* Expected / Totals */}
-                    <td className="px-3 py-2 text-right tabular-nums font-medium text-slate-700">{formatCurrency(p.procedureTotal)}</td>
-                    <td className="px-3 py-2 text-right tabular-nums text-slate-600">{formatCurrency(p.totalClaimPaid)}</td>
-                    <td className="px-3 py-2 text-right tabular-nums text-slate-600">{formatCurrency(p.totalAwards)}</td>
-                    <td className="px-3 py-2 text-right tabular-nums text-slate-600">{formatCurrency(p.totalProviderExpected ?? 0)}</td>
-                    <td className="px-3 py-2 text-right tabular-nums text-slate-600">{formatCurrency(p.idrTeamCommissionExpected)}</td>
-                    <td className="px-3 py-2 text-right tabular-nums text-slate-600 border-r border-slate-200">{formatCurrency(p.bhacNetExpected)}</td>
+                    <td className="px-2 py-1.5 text-right tabular-nums font-medium text-slate-700">{formatCurrency(p.procedureTotal)}</td>
+                    <td className="px-2 py-1.5 text-right tabular-nums text-slate-600">{formatCurrency(p.totalClaimPaid)}</td>
+                    <td className="px-2 py-1.5 text-right tabular-nums text-slate-600">{formatCurrency(p.totalAwards)}</td>
+                    <td className="px-2 py-1.5 text-right tabular-nums text-slate-600">{formatCurrency(p.totalProviderExpected ?? 0)}</td>
+                    <td className="px-2 py-1.5 text-right tabular-nums text-slate-600">{formatCurrency(p.idrTeamCommissionExpected)}</td>
+                    <td className="px-2 py-1.5 text-right tabular-nums text-slate-600 border-r border-slate-200">{formatCurrency(p.bhacNetExpected)}</td>
                     {/* Deposited Funds */}
-                    <td className="px-3 py-2 text-right tabular-nums font-medium text-green-700 bg-blue-50/20">{formatCurrency(p.totalDeposited)}</td>
-                    <td className="px-3 py-2 text-right tabular-nums text-slate-600 bg-blue-50/20">{formatCurrency(p.totalClaimsDeposited ?? 0)}</td>
-                    <td className="px-3 py-2 text-right tabular-nums text-slate-600 bg-blue-50/20">{formatCurrency(p.totalAwardsDeposited ?? 0)}</td>
-                    <td className="px-3 py-2 text-right tabular-nums text-slate-600 bg-blue-50/20">{formatCurrency(p.providerOwed)}</td>
-                    <td className={`px-3 py-2 text-right tabular-nums bg-blue-50/20 ${p.providerBalanceOwed > 0 ? 'text-amber-700 font-medium' : 'text-slate-600'}`}>{formatCurrency(p.providerBalanceOwed)}</td>
-                    <td className="px-3 py-2 text-right tabular-nums text-slate-600 bg-blue-50/20">{formatCurrency(p.idrTeamCommission)}</td>
-                    <td className="px-3 py-2 text-right tabular-nums text-sky-700 bg-blue-50/20 border-r border-blue-100">{formatCurrency(p.bhacRetainedToDate)}</td>
+                    <td className="px-2 py-1.5 text-right tabular-nums font-medium text-green-700 bg-blue-50/20">{formatCurrency(p.totalDeposited)}</td>
+                    <td className="px-2 py-1.5 text-right tabular-nums text-slate-600 bg-blue-50/20">{formatCurrency(p.totalClaimsDeposited ?? 0)}</td>
+                    <td className="px-2 py-1.5 text-right tabular-nums text-slate-600 bg-blue-50/20">{formatCurrency(p.totalAwardsDeposited ?? 0)}</td>
+                    <td className="px-2 py-1.5 text-right tabular-nums text-slate-600 bg-blue-50/20">{formatCurrency(p.providerOwed)}</td>
+                    <td className={`px-2 py-1.5 text-right tabular-nums bg-blue-50/20 ${p.providerBalanceOwed > 0 ? 'text-amber-700 font-medium' : 'text-slate-600'}`}>{formatCurrency(p.providerBalanceOwed)}</td>
+                    <td className="px-2 py-1.5 text-right tabular-nums text-slate-600 bg-blue-50/20">{formatCurrency(p.idrTeamCommission)}</td>
+                    <td className="px-2 py-1.5 text-right tabular-nums text-sky-700 bg-blue-50/20 border-r border-blue-100">{formatCurrency(p.bhacRetainedToDate)}</td>
                     {/* Undeposited Funds */}
-                    <td className="px-3 py-2 text-right tabular-nums font-medium text-amber-700 bg-amber-50/20">{formatCurrency(p.undepositedTotal)}</td>
-                    <td className="px-3 py-2 text-right tabular-nums text-slate-600 bg-amber-50/20">{formatCurrency(p.totalClaimPaid - (p.totalClaimsDeposited ?? 0))}</td>
-                    <td className="px-3 py-2 text-right tabular-nums text-slate-600 bg-amber-50/20">{formatCurrency(p.totalAwards - (p.totalAwardsDeposited ?? 0))}</td>
-                    <td className="px-3 py-2 text-right tabular-nums text-orange-700 bg-amber-50/20">{formatCurrency(computePendingReceivable(p))}</td>
-                    <td className="px-3 py-2 text-right tabular-nums text-slate-600 bg-amber-50/20">{formatCurrency(Math.max(p.idrTeamCommissionExpected - p.idrTeamCommission, 0))}</td>
-                    <td className={`px-3 py-2 text-right tabular-nums bg-amber-50/20 ${p.bhacBalanceOwed > 0 ? 'text-orange-700 font-medium' : 'text-slate-600'}`}>{formatCurrency(p.bhacBalanceOwed)}</td>
+                    <td className="px-2 py-1.5 text-right tabular-nums font-medium text-amber-700 bg-amber-50/20">{formatCurrency(p.undepositedTotal)}</td>
+                    <td className="px-2 py-1.5 text-right tabular-nums text-slate-600 bg-amber-50/20">{formatCurrency(p.totalClaimPaid - (p.totalClaimsDeposited ?? 0))}</td>
+                    <td className="px-2 py-1.5 text-right tabular-nums text-slate-600 bg-amber-50/20">{formatCurrency(p.totalAwards - (p.totalAwardsDeposited ?? 0))}</td>
+                    <td className="px-2 py-1.5 text-right tabular-nums text-orange-700 bg-amber-50/20">{formatCurrency(computePendingReceivable(p))}</td>
+                    <td className="px-2 py-1.5 text-right tabular-nums text-slate-600 bg-amber-50/20">{formatCurrency(Math.max(p.idrTeamCommissionExpected - p.idrTeamCommission, 0))}</td>
+                    <td className={`px-2 py-1.5 text-right tabular-nums bg-amber-50/20 ${p.bhacBalanceOwed > 0 ? 'text-orange-700 font-medium' : 'text-slate-600'}`}>{formatCurrency(p.bhacBalanceOwed)}</td>
                   </tr>
                 ))}
               </tbody>
               {/* ── Totals row ── */}
               <tfoot>
                 <tr className="border-t-2 border-slate-300 bg-slate-100">
-                  <td className="px-3 py-2.5 text-xs font-bold text-slate-700 uppercase tracking-wide border-r border-slate-200">Total</td>
+                  <td className="px-2 py-2 text-xs font-bold text-slate-700 uppercase tracking-wide border-r border-slate-200">Total</td>
                   {/* Expected / Totals */}
-                  <td className="px-3 py-2.5 text-right tabular-nums font-semibold text-slate-800">{formatCurrency(summary.procedureTotal)}</td>
-                  <td className="px-3 py-2.5 text-right tabular-nums font-semibold text-slate-800">{formatCurrency(tableTotals.totalClaimPaid)}</td>
-                  <td className="px-3 py-2.5 text-right tabular-nums font-semibold text-slate-800">{formatCurrency(tableTotals.totalAwards)}</td>
-                  <td className="px-3 py-2.5 text-right tabular-nums font-semibold text-slate-800">{formatCurrency(tableTotals.totalProviderExpected)}</td>
-                  <td className="px-3 py-2.5 text-right tabular-nums font-semibold text-slate-800">{formatCurrency(summary.idrTeamCommissionExpected)}</td>
-                  <td className="px-3 py-2.5 text-right tabular-nums font-semibold text-slate-800 border-r border-slate-200">{formatCurrency(summary.bhacNetExpected)}</td>
+                  <td className="px-2 py-2 text-right tabular-nums font-semibold text-slate-800">{formatCurrency(summary.procedureTotal)}</td>
+                  <td className="px-2 py-2 text-right tabular-nums font-semibold text-slate-800">{formatCurrency(tableTotals.totalClaimPaid)}</td>
+                  <td className="px-2 py-2 text-right tabular-nums font-semibold text-slate-800">{formatCurrency(tableTotals.totalAwards)}</td>
+                  <td className="px-2 py-2 text-right tabular-nums font-semibold text-slate-800">{formatCurrency(tableTotals.totalProviderExpected)}</td>
+                  <td className="px-2 py-2 text-right tabular-nums font-semibold text-slate-800">{formatCurrency(summary.idrTeamCommissionExpected)}</td>
+                  <td className="px-2 py-2 text-right tabular-nums font-semibold text-slate-800 border-r border-slate-200">{formatCurrency(summary.bhacNetExpected)}</td>
                   {/* Deposited Funds */}
-                  <td className="px-3 py-2.5 text-right tabular-nums font-semibold text-green-800 bg-blue-50/40">{formatCurrency(summary.totalDeposited)}</td>
-                  <td className="px-3 py-2.5 text-right tabular-nums font-semibold text-slate-800 bg-blue-50/40">{formatCurrency(summary.totalClaimsDeposited)}</td>
-                  <td className="px-3 py-2.5 text-right tabular-nums font-semibold text-slate-800 bg-blue-50/40">{formatCurrency(summary.totalAwardsDeposited)}</td>
-                  <td className="px-3 py-2.5 text-right tabular-nums font-semibold text-slate-800 bg-blue-50/40">{formatCurrency(summary.providerOwed)}</td>
-                  <td className={`px-3 py-2.5 text-right tabular-nums font-semibold bg-blue-50/40 ${summary.providerBalanceOwed > 0 ? 'text-amber-800' : 'text-slate-800'}`}>{formatCurrency(summary.providerBalanceOwed)}</td>
-                  <td className="px-3 py-2.5 text-right tabular-nums font-semibold text-slate-800 bg-blue-50/40">{formatCurrency(summary.idrTeamCommission)}</td>
-                  <td className="px-3 py-2.5 text-right tabular-nums font-semibold text-sky-800 bg-blue-50/40 border-r border-blue-100">{formatCurrency(summary.bhacRetainedToDate)}</td>
+                  <td className="px-2 py-2 text-right tabular-nums font-semibold text-green-800 bg-blue-50/40">{formatCurrency(summary.totalDeposited)}</td>
+                  <td className="px-2 py-2 text-right tabular-nums font-semibold text-slate-800 bg-blue-50/40">{formatCurrency(summary.totalClaimsDeposited)}</td>
+                  <td className="px-2 py-2 text-right tabular-nums font-semibold text-slate-800 bg-blue-50/40">{formatCurrency(summary.totalAwardsDeposited)}</td>
+                  <td className="px-2 py-2 text-right tabular-nums font-semibold text-slate-800 bg-blue-50/40">{formatCurrency(summary.providerOwed)}</td>
+                  <td className={`px-2 py-2 text-right tabular-nums font-semibold bg-blue-50/40 ${summary.providerBalanceOwed > 0 ? 'text-amber-800' : 'text-slate-800'}`}>{formatCurrency(summary.providerBalanceOwed)}</td>
+                  <td className="px-2 py-2 text-right tabular-nums font-semibold text-slate-800 bg-blue-50/40">{formatCurrency(summary.idrTeamCommission)}</td>
+                  <td className="px-2 py-2 text-right tabular-nums font-semibold text-sky-800 bg-blue-50/40 border-r border-blue-100">{formatCurrency(summary.bhacRetainedToDate)}</td>
                   {/* Undeposited Funds */}
-                  <td className="px-3 py-2.5 text-right tabular-nums font-semibold text-amber-800 bg-amber-50/40">{formatCurrency(summary.undepositedTotal)}</td>
-                  <td className="px-3 py-2.5 text-right tabular-nums font-semibold text-slate-800 bg-amber-50/40">{formatCurrency(tableTotals.totalClaimPaid - summary.totalClaimsDeposited)}</td>
-                  <td className="px-3 py-2.5 text-right tabular-nums font-semibold text-slate-800 bg-amber-50/40">{formatCurrency(tableTotals.totalAwards - summary.totalAwardsDeposited)}</td>
-                  <td className="px-3 py-2.5 text-right tabular-nums font-semibold text-orange-800 bg-amber-50/40">{formatCurrency(summary.pendingProviderReceivable)}</td>
-                  <td className="px-3 py-2.5 text-right tabular-nums font-semibold text-slate-800 bg-amber-50/40">{formatCurrency(Math.max(summary.idrTeamCommissionExpected - summary.idrTeamCommission, 0))}</td>
-                  <td className={`px-3 py-2.5 text-right tabular-nums font-semibold bg-amber-50/40 ${summary.bhacBalanceOwed > 0 ? 'text-orange-800' : 'text-slate-800'}`}>{formatCurrency(summary.bhacBalanceOwed)}</td>
+                  <td className="px-2 py-2 text-right tabular-nums font-semibold text-amber-800 bg-amber-50/40">{formatCurrency(summary.undepositedTotal)}</td>
+                  <td className="px-2 py-2 text-right tabular-nums font-semibold text-slate-800 bg-amber-50/40">{formatCurrency(tableTotals.totalClaimPaid - summary.totalClaimsDeposited)}</td>
+                  <td className="px-2 py-2 text-right tabular-nums font-semibold text-slate-800 bg-amber-50/40">{formatCurrency(tableTotals.totalAwards - summary.totalAwardsDeposited)}</td>
+                  <td className="px-2 py-2 text-right tabular-nums font-semibold text-orange-800 bg-amber-50/40">{formatCurrency(summary.pendingProviderReceivable)}</td>
+                  <td className="px-2 py-2 text-right tabular-nums font-semibold text-slate-800 bg-amber-50/40">{formatCurrency(Math.max(summary.idrTeamCommissionExpected - summary.idrTeamCommission, 0))}</td>
+                  <td className={`px-2 py-2 text-right tabular-nums font-semibold bg-amber-50/40 ${summary.bhacBalanceOwed > 0 ? 'text-orange-800' : 'text-slate-800'}`}>{formatCurrency(summary.bhacBalanceOwed)}</td>
                 </tr>
               </tfoot>
             </table>
