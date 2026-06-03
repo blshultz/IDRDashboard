@@ -242,7 +242,7 @@ export default function AdminDashboard({ procedures, onRefetch }: Props) {
       <section className="space-y-4">
         <h2 className="text-lg font-semibold text-slate-700">Practice Overview</h2>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-4 xl:grid-cols-7 gap-4">
           <SummaryCard
             label="Total Allowed"
             value={globalSummary.procedureTotal}
@@ -269,6 +269,12 @@ export default function AdminDashboard({ procedures, onRefetch }: Props) {
             icon={<Percent className="w-5 h-5" />}
             color="green"
             format="percent"
+          />
+          <SummaryCard
+            label="BHAC Collected Funds Retained"
+            value={globalSummary.bhacRetainedToDate}
+            icon={<CheckCircle className="w-5 h-5" />}
+            color="green"
           />
           <SummaryCard
             label="BHAC Balance"
