@@ -91,7 +91,7 @@ function buildSheetRow(get: (name: string) => unknown): SheetRow {
     // Admin aliases (same sheet columns as the doctor fields above)
     providerOwed:          parseNumber(get("Provider Payable")),
     providerBalanceOwed:   parseNumber(get("Provider Open Balance")),
-    idrTeamCommission:     parseNumber(get("IDR Team Commission")),
+    idrTeamCommission:     parseNumber(get("IDR Team Commission Earned")),
     bhacNetExpected:      parseNumber(get("BHAC Net Expected")),
     bhacRetainedToDate:   parseNumber(get("BHAC Retained to Date")),
     bhacBalanceOwed:      parseNumber(get("BHAC Balance Owed")),

@@ -17,7 +17,7 @@ interface Props {
 const EMPTY_FILTERS: FilterState = { search: '', providerId: '', dateFrom: '', dateTo: '', outstandingOnly: false };
 
 function exportAdminCsv(procedures: Procedure[]) {
-  const headers = ['Procedure ID','Provider Name','Total Claim Paid','Total Awards','Total Allowed','Total Deposited','Undeposited Total','Provider Collected Funds Payable','Provider Paid','Provider Open Balance','IDR Team Commission','BHAC Net Expected','BHAC Retained to Date','BHAC Balance Owed'];
+  const headers = ['Procedure ID','Provider Name','Total Claim Paid','Total Awards','Total Allowed','Total Deposited','Undeposited Total','Provider Collected Funds Payable','Provider Paid','Provider Open Balance','IDR Team Commission Earned','BHAC Net Expected','BHAC Retained to Date','BHAC Balance Owed'];
   const rows = procedures.map(p => [p.procedureId,p.providerName,p.totalClaimPaid.toFixed(2),p.totalAwards.toFixed(2),p.procedureTotal.toFixed(2),p.totalDeposited.toFixed(2),p.undepositedTotal.toFixed(2),p.providerOwed.toFixed(2),p.providerPaid.toFixed(2),p.providerBalanceOwed.toFixed(2),p.idrTeamCommission.toFixed(2),p.bhacNetExpected.toFixed(2),p.bhacRetainedToDate.toFixed(2),p.bhacBalanceOwed.toFixed(2)]);
   const csv = [headers,...rows].map(r=>r.map(v=>`"${v}"`).join(',')).join('\n');
   const blob = new Blob([csv],{type:'text/csv'});
@@ -131,7 +131,7 @@ function ProviderSection({ providerName, procedures }: { providerName: string; p
               { label: 'Undeposited', value: summary.undepositedTotal, color: summary.undepositedTotal > 0 ? 'text-amber-700' : 'text-slate-600', bg: summary.undepositedTotal > 0 ? 'bg-amber-50' : 'bg-slate-50' },
               { label: 'Provider Collected Funds Payable', value: summary.providerOwed, color: 'text-slate-700', bg: 'bg-slate-50' },
               { label: 'Provider Open Balance', value: summary.providerBalanceOwed, color: summary.providerBalanceOwed > 0 ? 'text-amber-700' : 'text-slate-600', bg: summary.providerBalanceOwed > 0 ? 'bg-amber-50' : 'bg-slate-50' },
-              { label: 'IDR Commission', value: summary.idrTeamCommission, color: 'text-slate-700', bg: 'bg-slate-50' },
+              { label: 'IDR Team Commission Earned', value: summary.idrTeamCommission, color: 'text-slate-700', bg: 'bg-slate-50' },
               { label: 'BHAC Balance', value: summary.bhacBalanceOwed, color: summary.bhacBalanceOwed > 0 ? 'text-orange-700' : 'text-slate-600', bg: summary.bhacBalanceOwed > 0 ? 'bg-orange-50' : 'bg-slate-50' },
             ].map(item => (
               <div key={item.label} className={`${item.bg} rounded-lg p-3`}>
@@ -144,7 +144,7 @@ function ProviderSection({ providerName, procedures }: { providerName: string; p
             <table className="w-full text-left text-sm">
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-200">
-                  {['Procedure ID','Claim Paid','Awards','Total Allowed','Deposited','Undeposited','Provider Open Balance','IDR Comm.','BHAC Net','BHAC Retained','BHAC Balance'].map((h,i) => (
+                  {['Procedure ID','Claim Paid','Awards','Total Allowed','Deposited','Undeposited','Provider Open Balance','IDR Earned','BHAC Net','BHAC Retained','BHAC Balance'].map((h,i) => (
                     <th key={h} className={`px-3 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wide ${i > 0 ? 'text-right' : ''}`}>{h}</th>
                   ))}
                 </tr>
