@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import {
   Users, ChevronDown, ChevronUp, RefreshCw, FileDown, Printer,
   DollarSign, Wallet, TrendingUp, Percent, AlertTriangle, CreditCard, CheckCircle, AlertCircle,
-  Search, Filter, X
+  Search, Filter, X, Clock
 } from 'lucide-react';
 import { Procedure, FilterState } from '../types';
 import { getProceduresByProviderName, computeSummary } from '../data/mockData';
@@ -284,6 +284,39 @@ export default function AdminDashboard({ procedures, onRefetch }: Props) {
             highlight={globalSummary.bhacBalanceOwed > 0}
           />
         </div>
+      </section>
+
+      {/* ══ Provider Overview ══════════════════════════════════════════ */}
+      <section className="space-y-4">
+        <h2 className="text-lg font-semibold text-slate-700">Provider Overview</h2>
+
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <SummaryCard
+            label="Provider Collected Funds Payable"
+            value={globalSummary.providerOwed}
+            icon={<CreditCard className="w-5 h-5" />}
+            color="yellow"
+          />
+          <SummaryCard
+            label="Provider Paid"
+            value={globalSummary.providerPaid}
+            icon={<CheckCircle className="w-5 h-5" />}
+            color="yellow"
+          />
+          <SummaryCard
+            label="Provider Open Balance"
+            value={globalSummary.providerBalanceOwed}
+            icon={<AlertCircle className="w-5 h-5" />}
+            color="red"
+            highlight={globalSummary.providerBalanceOwed > 0}
+          />
+          <SummaryCard
+            label="Pending Provider Receivables"
+            value={globalSummary.pendingProviderReceivable}
+            icon={<Clock className="w-5 h-5" />}
+            color="orange"
+          />
+        </div>
 
         {/* Filters bar */}
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm">
@@ -326,33 +359,6 @@ export default function AdminDashboard({ procedures, onRefetch }: Props) {
               </label>
             </div>
           )}
-        </div>
-      </section>
-
-      {/* ══ Provider Overview ══════════════════════════════════════════ */}
-      <section className="space-y-4">
-        <h2 className="text-lg font-semibold text-slate-700">Provider Overview</h2>
-
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <SummaryCard
-            label="Provider Collected Funds Payable"
-            value={globalSummary.providerOwed}
-            icon={<CreditCard className="w-5 h-5" />}
-            color="yellow"
-          />
-          <SummaryCard
-            label="Provider Paid"
-            value={globalSummary.providerPaid}
-            icon={<CheckCircle className="w-5 h-5" />}
-            color="yellow"
-          />
-          <SummaryCard
-            label="Provider Open Balance"
-            value={globalSummary.providerBalanceOwed}
-            icon={<AlertCircle className="w-5 h-5" />}
-            color="red"
-            highlight={globalSummary.providerBalanceOwed > 0}
-          />
         </div>
 
         {/* Provider breakdown */}
