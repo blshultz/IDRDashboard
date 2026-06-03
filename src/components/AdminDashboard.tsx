@@ -17,7 +17,7 @@ interface Props {
 const EMPTY_FILTERS: FilterState = { search: '', providerId: '', dateFrom: '', dateTo: '', outstandingOnly: false };
 
 function exportAdminCsv(procedures: Procedure[]) {
-  const headers = ['Procedure ID','Provider Name','Total Claim Paid','Total Awards','Total Allowed','Total Deposited','Undeposited Total','Provider Collected Funds Payable','Provider Paid','Provider Open Balance','IDR Team Commission Earned','BHAC Net Expected','BHAC Retained to Date','BHAC Balance Owed'];
+  const headers = ['Procedure ID','Provider Name','Total Claim Paid','Total Awards','Total Allowed','Total Deposited','Undeposited Total','Provider Collected Funds Payable','Provider Paid','Provider Open Balance','IDR Team Commission Earned','BHAC Net Expected','BHAC Retained to Date','BHAC Receivable'];
   const rows = procedures.map(p => [p.procedureId,p.providerName,p.totalClaimPaid.toFixed(2),p.totalAwards.toFixed(2),p.procedureTotal.toFixed(2),p.totalDeposited.toFixed(2),p.undepositedTotal.toFixed(2),p.providerOwed.toFixed(2),p.providerPaid.toFixed(2),p.providerBalanceOwed.toFixed(2),p.idrTeamCommission.toFixed(2),p.bhacNetExpected.toFixed(2),p.bhacRetainedToDate.toFixed(2),p.bhacBalanceOwed.toFixed(2)]);
   const csv = [headers,...rows].map(r=>r.map(v=>`"${v}"`).join(',')).join('\n');
   const blob = new Blob([csv],{type:'text/csv'});
@@ -116,7 +116,7 @@ function ProviderSection({ providerName, procedures }: { providerName: string; p
             <div><p className="text-xs text-slate-400">Provider Collected Funds Payable</p><p className="text-sm font-semibold text-slate-600 tabular-nums">{formatCurrency(summary.providerOwed)}</p></div>
             <div><p className="text-xs text-slate-400">Provider Open Balance</p><p className={`text-sm font-semibold tabular-nums ${summary.providerBalanceOwed > 0 ? 'text-amber-700' : 'text-slate-600'}`}>{formatCurrency(summary.providerBalanceOwed)}</p></div>
             <div><p className="text-xs text-slate-400">BHAC Net Expected</p><p className="text-sm font-semibold text-sky-700 tabular-nums">{formatCurrency(summary.bhacNetExpected)}</p></div>
-            <div><p className="text-xs text-slate-400">BHAC Balance</p><p className={`text-sm font-semibold tabular-nums ${summary.bhacBalanceOwed > 0 ? 'text-orange-700' : 'text-slate-600'}`}>{formatCurrency(summary.bhacBalanceOwed)}</p></div>
+            <div><p className="text-xs text-slate-400">BHAC Receivable</p><p className={`text-sm font-semibold tabular-nums ${summary.bhacBalanceOwed > 0 ? 'text-orange-700' : 'text-slate-600'}`}>{formatCurrency(summary.bhacBalanceOwed)}</p></div>
           </div>
           <div className="text-slate-400 flex-shrink-0">{open ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}</div>
         </div>
@@ -132,7 +132,7 @@ function ProviderSection({ providerName, procedures }: { providerName: string; p
               { label: 'Provider Collected Funds Payable', value: summary.providerOwed, color: 'text-slate-700', bg: 'bg-slate-50' },
               { label: 'Provider Open Balance', value: summary.providerBalanceOwed, color: summary.providerBalanceOwed > 0 ? 'text-amber-700' : 'text-slate-600', bg: summary.providerBalanceOwed > 0 ? 'bg-amber-50' : 'bg-slate-50' },
               { label: 'IDR Team Commission Earned', value: summary.idrTeamCommission, color: 'text-slate-700', bg: 'bg-slate-50' },
-              { label: 'BHAC Balance', value: summary.bhacBalanceOwed, color: summary.bhacBalanceOwed > 0 ? 'text-orange-700' : 'text-slate-600', bg: summary.bhacBalanceOwed > 0 ? 'bg-orange-50' : 'bg-slate-50' },
+              { label: 'BHAC Receivable', value: summary.bhacBalanceOwed, color: summary.bhacBalanceOwed > 0 ? 'text-orange-700' : 'text-slate-600', bg: summary.bhacBalanceOwed > 0 ? 'bg-orange-50' : 'bg-slate-50' },
             ].map(item => (
               <div key={item.label} className={`${item.bg} rounded-lg p-3`}>
                 <p className="text-xs text-slate-500 mb-1">{item.label}</p>
@@ -144,7 +144,7 @@ function ProviderSection({ providerName, procedures }: { providerName: string; p
             <table className="w-full text-left text-sm">
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-200">
-                  {['Procedure ID','Claim Paid','Awards','Total Allowed','Deposited','Undeposited','Provider Open Balance','IDR Earned','BHAC Net','BHAC Retained','BHAC Balance'].map((h,i) => (
+                  {['Procedure ID','Claim Paid','Awards','Total Allowed','Deposited','Undeposited','Provider Open Balance','IDR Earned','BHAC Net','BHAC Retained','BHAC Receivable'].map((h,i) => (
                     <th key={h} className={`px-3 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wide ${i > 0 ? 'text-right' : ''}`}>{h}</th>
                   ))}
                 </tr>
@@ -277,7 +277,7 @@ export default function AdminDashboard({ procedures, onRefetch }: Props) {
             color="green"
           />
           <SummaryCard
-            label="BHAC Balance"
+            label="BHAC Receivable"
             value={globalSummary.bhacBalanceOwed}
             icon={<AlertTriangle className="w-5 h-5" />}
             color="red"
