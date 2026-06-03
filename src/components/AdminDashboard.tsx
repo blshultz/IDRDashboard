@@ -194,7 +194,7 @@ function ProviderSection({ providerName, procedures }: { providerName: string; p
                   <th className="px-2 py-1 bg-slate-50 border-r border-slate-200" />
                   <th className="px-2 py-1 bg-slate-50" />
                   <th className="px-2 py-1 bg-slate-50 border-r border-slate-200" />
-                  <th colSpan={3} className="px-2 py-1 text-center text-xs font-semibold text-slate-500 uppercase tracking-wide bg-slate-50 border-r border-slate-200">Expected</th>
+                  <th colSpan={3} className="px-2 py-1 text-center text-xs font-semibold text-green-600 uppercase tracking-wide bg-green-50 border-r border-green-100">Expected</th>
                   <th colSpan={4} className="px-2 py-1 text-center text-xs font-semibold text-blue-600 uppercase tracking-wide bg-blue-50 border-r border-blue-100">Collected</th>
                   <th colSpan={3} className="px-2 py-1 text-center text-xs font-semibold text-amber-600 uppercase tracking-wide bg-amber-50">Pending</th>
                 </tr>
@@ -203,9 +203,9 @@ function ProviderSection({ providerName, procedures }: { providerName: string; p
                   <th className="px-2 py-1.5 text-xs font-semibold text-slate-500 uppercase tracking-wide bg-slate-50 border-r border-slate-200">Procedure ID</th>
                   <th className="px-2 py-1.5 text-xs font-semibold text-slate-500 uppercase tracking-wide bg-slate-50">Claim No</th>
                   <th className="px-2 py-1.5 text-xs font-semibold text-slate-500 uppercase tracking-wide bg-slate-50 border-r border-slate-200">CPT</th>
-                  <th className="px-2 py-1.5 text-xs font-semibold text-slate-500 uppercase tracking-wide text-right bg-slate-50 leading-tight">Provider</th>
-                  <th className="px-2 py-1.5 text-xs font-semibold text-slate-500 uppercase tracking-wide text-right bg-slate-50 leading-tight">IDR</th>
-                  <th className="px-2 py-1.5 text-xs font-semibold text-slate-500 uppercase tracking-wide text-right bg-slate-50 leading-tight border-r border-slate-200">BHAC Net</th>
+                  <th className="px-2 py-1.5 text-xs font-semibold text-green-600 uppercase tracking-wide text-right bg-green-50 leading-tight">Provider</th>
+                  <th className="px-2 py-1.5 text-xs font-semibold text-green-600 uppercase tracking-wide text-right bg-green-50 leading-tight">IDR</th>
+                  <th className="px-2 py-1.5 text-xs font-semibold text-green-600 uppercase tracking-wide text-right bg-green-50 leading-tight border-r border-green-100">BHAC Net</th>
                   <th className="px-2 py-1.5 text-xs font-semibold text-blue-500 uppercase tracking-wide text-right bg-blue-50 leading-tight">Provider</th>
                   <th className="px-2 py-1.5 text-xs font-semibold text-blue-500 uppercase tracking-wide text-right bg-blue-50 leading-tight">Open Bal.</th>
                   <th className="px-2 py-1.5 text-xs font-semibold text-blue-500 uppercase tracking-wide text-right bg-blue-50 leading-tight">IDR</th>
@@ -222,9 +222,9 @@ function ProviderSection({ providerName, procedures }: { providerName: string; p
                     <td className="px-2 py-1.5 text-slate-600">{p.claimNumber || '—'}</td>
                     <td className="px-2 py-1.5 text-slate-600 border-r border-slate-200">{p.awardCode || '—'}</td>
                     {/* Expected */}
-                    <td className="px-2 py-1.5 text-right tabular-nums text-slate-700">{formatCurrency(p.totalProviderExpected ?? 0)}</td>
-                    <td className="px-2 py-1.5 text-right tabular-nums text-slate-600">{formatCurrency(p.idrTeamCommissionExpected)}</td>
-                    <td className="px-2 py-1.5 text-right tabular-nums text-slate-600 border-r border-slate-200">{formatCurrency(p.bhacNetExpected)}</td>
+                    <td className="px-2 py-1.5 text-right tabular-nums text-green-700 bg-green-50/20">{formatCurrency(p.totalProviderExpected ?? 0)}</td>
+                    <td className="px-2 py-1.5 text-right tabular-nums text-green-700 bg-green-50/20">{formatCurrency(p.idrTeamCommissionExpected)}</td>
+                    <td className="px-2 py-1.5 text-right tabular-nums text-green-700 bg-green-50/20 border-r border-green-100">{formatCurrency(p.bhacNetExpected)}</td>
                     {/* Collected */}
                     <td className="px-2 py-1.5 text-right tabular-nums text-slate-700 bg-blue-50/20">{formatCurrency(p.providerOwed)}</td>
                     <td className={`px-2 py-1.5 text-right tabular-nums bg-blue-50/20 ${p.providerBalanceOwed > 0 ? 'text-amber-700 font-medium' : 'text-slate-600'}`}>{formatCurrency(p.providerBalanceOwed)}</td>
@@ -244,9 +244,9 @@ function ProviderSection({ providerName, procedures }: { providerName: string; p
                   <td className="px-2 py-2 text-slate-400">—</td>
                   <td className="px-2 py-2 text-slate-400 border-r border-slate-200">—</td>
                   {/* Expected */}
-                  <td className="px-2 py-2 text-right tabular-nums font-semibold text-slate-800">{formatCurrency(tableTotals.totalProviderExpected)}</td>
-                  <td className="px-2 py-2 text-right tabular-nums font-semibold text-slate-800">{formatCurrency(summary.idrTeamCommissionExpected)}</td>
-                  <td className="px-2 py-2 text-right tabular-nums font-semibold text-slate-800 border-r border-slate-200">{formatCurrency(summary.bhacNetExpected)}</td>
+                  <td className="px-2 py-2 text-right tabular-nums font-semibold text-green-800 bg-green-50/40">{formatCurrency(tableTotals.totalProviderExpected)}</td>
+                  <td className="px-2 py-2 text-right tabular-nums font-semibold text-green-800 bg-green-50/40">{formatCurrency(summary.idrTeamCommissionExpected)}</td>
+                  <td className="px-2 py-2 text-right tabular-nums font-semibold text-green-800 bg-green-50/40 border-r border-green-100">{formatCurrency(summary.bhacNetExpected)}</td>
                   {/* Collected */}
                   <td className="px-2 py-2 text-right tabular-nums font-semibold text-slate-800 bg-blue-50/40">{formatCurrency(summary.providerOwed)}</td>
                   <td className={`px-2 py-2 text-right tabular-nums font-semibold bg-blue-50/40 ${summary.providerBalanceOwed > 0 ? 'text-amber-800' : 'text-slate-800'}`}>{formatCurrency(summary.providerBalanceOwed)}</td>
