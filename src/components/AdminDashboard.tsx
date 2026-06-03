@@ -294,14 +294,19 @@ export default function AdminDashboard({ procedures, onRefetch }: Props) {
     let result = procedures;
     if (filters.search) {
       const q = filters.search.toLowerCase();
-      result = result.filter(p => p.procedureId.toLowerCase().includes(q) || p.providerName.toLowerCase().includes(q));
+      result = result.filter(p =>
+        p.procedureId.toLowerCase().includes(q) ||
+        p.providerName.toLowerCase().includes(q) ||
+        (p.claimNumber ?? '').toLowerCase().includes(q) ||
+        (p.awardCode ?? '').toLowerCase().includes(q)
+      );
     }
     if (filters.providerId) {
       result = result.filter(p => p.providerId === filters.providerId);
     }
     if (filters.dateFrom) result = result.filter(p => p.date >= filters.dateFrom);
     if (filters.dateTo)   result = result.filter(p => p.date <= filters.dateTo);
-    if (filters.outstandingOnly) result = result.filter(p => p.providerBalanceOwed > 0 || p.bhacBalanceOwed > 0);
+    if (filters.outstandingOnly) result = result.filter(p => p.providerBalanceOwed > 0);
     return result;
   }, [procedures, filters]);
 
@@ -442,7 +447,7 @@ export default function AdminDashboard({ procedures, onRefetch }: Props) {
             <div className="px-5 py-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
               <div className="relative lg:col-span-2">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                <input type="text" placeholder="Search procedure ID or provider..." value={filters.search} onChange={e => setFilters(f=>({...f,search:e.target.value}))}
+                <input type="text" placeholder="Search procedure ID, provider, claim no, CPT..." value={filters.search} onChange={e => setFilters(f=>({...f,search:e.target.value}))}
                   className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
               </div>
               <select value={filters.providerId} onChange={e => setFilters(f=>({...f,providerId:e.target.value}))}
@@ -457,7 +462,7 @@ export default function AdminDashboard({ procedures, onRefetch }: Props) {
               <input type="date" value={filters.dateTo} onChange={e => setFilters(f=>({...f,dateTo:e.target.value}))} className="py-2 px-3 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-600" />
               <label className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer lg:col-span-5 lg:w-fit">
                 <input type="checkbox" checked={filters.outstandingOnly} onChange={e => setFilters(f=>({...f,outstandingOnly:e.target.checked}))} className="rounded border-slate-300 text-blue-600 focus:ring-blue-500" />
-                Outstanding balances only
+                Show Open Payables Only
               </label>
             </div>
           )}
