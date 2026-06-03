@@ -164,8 +164,8 @@ function ProviderSection({ providerName, procedures }: { providerName: string; p
                 <p className="text-xs font-semibold text-orange-700 tabular-nums mt-0.5">{formatCurrency(summary.pendingProviderReceivable)}</p>
               </div>
               <div>
-                <p className="text-xs text-slate-400 leading-tight">IDR Expected</p>
-                <p className="text-xs font-semibold text-slate-700 tabular-nums mt-0.5">{formatCurrency(summary.idrTeamCommissionExpected)}</p>
+                <p className="text-xs text-slate-400 leading-tight">IDR Pending</p>
+                <p className="text-xs font-semibold text-slate-700 tabular-nums mt-0.5">{formatCurrency(Math.max(summary.idrTeamCommissionExpected - summary.idrTeamCommission, 0))}</p>
               </div>
               <div>
                 <p className="text-xs text-slate-400 leading-tight">BHAC Receivable</p>
