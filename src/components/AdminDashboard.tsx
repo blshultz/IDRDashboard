@@ -168,8 +168,8 @@ function ProviderSection({ providerName, procedures }: { providerName: string; p
                 <p className="text-xs font-semibold text-slate-700 tabular-nums mt-0.5">{formatCurrency(summary.idrTeamCommissionExpected)}</p>
               </div>
               <div>
-                <p className="text-xs text-slate-400 leading-tight">BHAC Net Expected</p>
-                <p className="text-xs font-semibold text-teal-700 tabular-nums mt-0.5">{formatCurrency(summary.bhacNetExpected)}</p>
+                <p className="text-xs text-slate-400 leading-tight">BHAC Receivable</p>
+                <p className={`text-xs font-semibold tabular-nums mt-0.5 ${summary.bhacBalanceOwed > 0 ? 'text-orange-700' : 'text-slate-600'}`}>{formatCurrency(summary.bhacBalanceOwed)}</p>
               </div>
             </div>
           </div>
