@@ -39,6 +39,7 @@ export interface Procedure {
   providerPaid: number;          // Sheet: "Provider Paid" — shared by both portals
   providerBalanceOwed: number;
   idrTeamCommission: number;
+  idrTeamCommissionExpected: number; // Sheet: "IDR Team Commission Expected"
 
   // ── BHAC admin calculations — do not use for doctor portal ──────────────
   bhacNetExpected: number;
@@ -57,6 +58,7 @@ export interface DashboardSummary {
   providerPaid: number;
   providerBalanceOwed: number;
   idrTeamCommission: number;
+  idrTeamCommissionExpected: number;
   bhacNetExpected: number;
   bhacRetainedToDate: number;
   bhacBalanceOwed: number;

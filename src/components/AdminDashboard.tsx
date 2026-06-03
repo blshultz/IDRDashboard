@@ -102,44 +102,82 @@ function ProviderSection({ providerName, procedures }: { providerName: string; p
 
   return (
     <div className={`bg-white rounded-xl border shadow-sm overflow-hidden ${hasBalance ? 'border-amber-200' : 'border-slate-200'}`}>
-      <button onClick={() => setOpen(v=>!v)} className="w-full flex items-center justify-between px-6 py-4 hover:bg-slate-50/60 transition-colors text-left">
-        <div className="flex items-center gap-4 min-w-0">
+      <button onClick={() => setOpen(v=>!v)} className="w-full flex items-center gap-4 px-6 py-4 hover:bg-slate-50/60 transition-colors text-left">
+
+        {/* Avatar + name */}
+        <div className="flex items-center gap-3 flex-shrink-0 w-40">
           <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold text-sm flex-shrink-0">{initials}</div>
           <div className="min-w-0">
-            <p className="font-semibold text-slate-800">{providerName}</p>
+            <p className="font-semibold text-slate-800 truncate">{providerName}</p>
             <p className="text-xs text-slate-400">{procedures.length} procedure{procedures.length !== 1 ? 's' : ''}</p>
           </div>
         </div>
-        <div className="flex items-center gap-6 ml-4">
-          <div className="hidden sm:grid grid-cols-5 gap-6 text-right">
-            <div><p className="text-xs text-slate-400">Total Allowed</p><p className="text-sm font-semibold text-blue-700 tabular-nums">{formatCurrency(summary.procedureTotal)}</p></div>
-            <div><p className="text-xs text-slate-400">Provider Collected Funds Payable</p><p className="text-sm font-semibold text-slate-600 tabular-nums">{formatCurrency(summary.providerOwed)}</p></div>
-            <div><p className="text-xs text-slate-400">Provider Open Balance</p><p className={`text-sm font-semibold tabular-nums ${summary.providerBalanceOwed > 0 ? 'text-amber-700' : 'text-slate-600'}`}>{formatCurrency(summary.providerBalanceOwed)}</p></div>
-            <div><p className="text-xs text-slate-400">BHAC Net Expected</p><p className="text-sm font-semibold text-sky-700 tabular-nums">{formatCurrency(summary.bhacNetExpected)}</p></div>
-            <div><p className="text-xs text-slate-400">BHAC Receivable</p><p className={`text-sm font-semibold tabular-nums ${summary.bhacBalanceOwed > 0 ? 'text-orange-700' : 'text-slate-600'}`}>{formatCurrency(summary.bhacBalanceOwed)}</p></div>
+
+        {/* Two-section summary — visible on large screens */}
+        <div className="hidden lg:flex items-start gap-0 flex-1 min-w-0">
+
+          {/* ── Deposited Funds ── */}
+          <div className="flex-1 min-w-0 pr-4">
+            <p className="text-xs font-semibold text-blue-600 uppercase tracking-wide mb-2">Deposited Funds</p>
+            <div className="grid grid-cols-5 gap-2 text-right">
+              <div>
+                <p className="text-xs text-slate-400 leading-tight">Total Allowed</p>
+                <p className="text-xs font-semibold text-blue-700 tabular-nums mt-0.5">{formatCurrency(summary.procedureTotal)}</p>
+              </div>
+              <div>
+                <p className="text-xs text-slate-400 leading-tight">Deposited</p>
+                <p className="text-xs font-semibold text-green-700 tabular-nums mt-0.5">{formatCurrency(summary.totalDeposited)}</p>
+              </div>
+              <div>
+                <p className="text-xs text-slate-400 leading-tight">Provider Portion</p>
+                <p className="text-xs font-semibold text-slate-700 tabular-nums mt-0.5">{formatCurrency(summary.providerOwed)}</p>
+              </div>
+              <div>
+                <p className="text-xs text-slate-400 leading-tight">IDR Earned</p>
+                <p className="text-xs font-semibold text-slate-700 tabular-nums mt-0.5">{formatCurrency(summary.idrTeamCommission)}</p>
+              </div>
+              <div>
+                <p className="text-xs text-slate-400 leading-tight">BHAC Retained</p>
+                <p className="text-xs font-semibold text-sky-700 tabular-nums mt-0.5">{formatCurrency(summary.bhacRetainedToDate)}</p>
+              </div>
+            </div>
           </div>
-          <div className="text-slate-400 flex-shrink-0">{open ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}</div>
+
+          {/* Divider */}
+          <div className="w-px self-stretch bg-slate-200 mx-1 flex-shrink-0" />
+
+          {/* ── Undeposited Funds ── */}
+          <div className="flex-1 min-w-0 pl-4">
+            <p className="text-xs font-semibold text-amber-600 uppercase tracking-wide mb-2">Undeposited Funds</p>
+            <div className="grid grid-cols-4 gap-2 text-right">
+              <div>
+                <p className="text-xs text-slate-400 leading-tight">Undeposited</p>
+                <p className={`text-xs font-semibold tabular-nums mt-0.5 ${summary.undepositedTotal > 0 ? 'text-amber-700' : 'text-slate-600'}`}>{formatCurrency(summary.undepositedTotal)}</p>
+              </div>
+              <div>
+                <p className="text-xs text-slate-400 leading-tight">Provider Portion</p>
+                <p className="text-xs font-semibold text-orange-700 tabular-nums mt-0.5">{formatCurrency(summary.pendingProviderReceivable)}</p>
+              </div>
+              <div>
+                <p className="text-xs text-slate-400 leading-tight">IDR Expected</p>
+                <p className="text-xs font-semibold text-slate-700 tabular-nums mt-0.5">{formatCurrency(summary.idrTeamCommissionExpected)}</p>
+              </div>
+              <div>
+                <p className="text-xs text-slate-400 leading-tight">BHAC Net Expected</p>
+                <p className="text-xs font-semibold text-teal-700 tabular-nums mt-0.5">{formatCurrency(summary.bhacNetExpected)}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Chevron */}
+        <div className="text-slate-400 flex-shrink-0 ml-auto lg:ml-4">
+          {open ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
         </div>
       </button>
 
       {open && (
-        <div className="border-t border-slate-100 px-6 pb-6 pt-4 space-y-5">
-          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
-            {[
-              { label: 'Total Allowed', value: summary.procedureTotal, color: 'text-blue-700', bg: 'bg-blue-50' },
-              { label: 'Deposited', value: summary.totalDeposited, color: 'text-green-700', bg: 'bg-green-50' },
-              { label: 'Undeposited', value: summary.undepositedTotal, color: summary.undepositedTotal > 0 ? 'text-amber-700' : 'text-slate-600', bg: summary.undepositedTotal > 0 ? 'bg-amber-50' : 'bg-slate-50' },
-              { label: 'Provider Collected Funds Payable', value: summary.providerOwed, color: 'text-slate-700', bg: 'bg-slate-50' },
-              { label: 'Provider Open Balance', value: summary.providerBalanceOwed, color: summary.providerBalanceOwed > 0 ? 'text-amber-700' : 'text-slate-600', bg: summary.providerBalanceOwed > 0 ? 'bg-amber-50' : 'bg-slate-50' },
-              { label: 'IDR Team Commission Earned', value: summary.idrTeamCommission, color: 'text-slate-700', bg: 'bg-slate-50' },
-              { label: 'BHAC Receivable', value: summary.bhacBalanceOwed, color: summary.bhacBalanceOwed > 0 ? 'text-orange-700' : 'text-slate-600', bg: summary.bhacBalanceOwed > 0 ? 'bg-orange-50' : 'bg-slate-50' },
-            ].map(item => (
-              <div key={item.label} className={`${item.bg} rounded-lg p-3`}>
-                <p className="text-xs text-slate-500 mb-1">{item.label}</p>
-                <p className={`text-sm font-semibold tabular-nums ${item.color}`}>{formatCurrency(item.value)}</p>
-              </div>
-            ))}
-          </div>
+        <div className="border-t border-slate-100 px-6 pb-6 pt-4">
           <div className="overflow-x-auto rounded-lg border border-slate-200">
             <table className="w-full text-left text-sm">
               <thead>

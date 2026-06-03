@@ -60,7 +60,8 @@ interface SheetRow {
   providerBalanceOwed: number;   // same column as providerOpenBalance
 
   // BHAC admin calculations — do not use for doctor pending-receivable
-  idrTeamCommission: number;
+  idrTeamCommission: number;         // Sheet: "IDR Team Commission Earned"
+  idrTeamCommissionExpected: number; // Sheet: "IDR Team Commission Expected"
   bhacNetExpected: number;
   bhacRetainedToDate: number;
   bhacBalanceOwed: number;
@@ -91,8 +92,9 @@ function buildSheetRow(get: (name: string) => unknown): SheetRow {
     // Admin aliases (same sheet columns as the doctor fields above)
     providerOwed:          parseNumber(get("Provider Payable")),
     providerBalanceOwed:   parseNumber(get("Provider Open Balance")),
-    idrTeamCommission:     parseNumber(get("IDR Team Commission Earned")),
-    bhacNetExpected:      parseNumber(get("BHAC Net Expected")),
+    idrTeamCommission:         parseNumber(get("IDR Team Commission Earned")),
+    idrTeamCommissionExpected: parseNumber(get("IDR Team Commission Expected")),
+    bhacNetExpected:           parseNumber(get("BHAC Net Expected")),
     bhacRetainedToDate:   parseNumber(get("BHAC Retained to Date")),
     bhacBalanceOwed:      parseNumber(get("BHAC Balance Owed")),
   };

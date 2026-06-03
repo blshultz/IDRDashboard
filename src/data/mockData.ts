@@ -39,6 +39,7 @@ export function computeSummary(procedures: Procedure[]): DashboardSummary {
       providerPaid:              acc.providerPaid              + p.providerPaid,
       providerBalanceOwed:       acc.providerBalanceOwed       + p.providerBalanceOwed,
       idrTeamCommission:         acc.idrTeamCommission         + p.idrTeamCommission,
+      idrTeamCommissionExpected: acc.idrTeamCommissionExpected + p.idrTeamCommissionExpected,
       bhacNetExpected:           acc.bhacNetExpected           + p.bhacNetExpected,
       bhacRetainedToDate:        acc.bhacRetainedToDate        + p.bhacRetainedToDate,
       bhacBalanceOwed:           acc.bhacBalanceOwed           + p.bhacBalanceOwed,
@@ -47,7 +48,8 @@ export function computeSummary(procedures: Procedure[]): DashboardSummary {
       procedureTotal: 0, totalDeposited: 0, totalClaimsDeposited: 0, totalAwardsDeposited: 0,
       undepositedTotal: 0, pendingProviderReceivable: 0,
       providerOwed: 0, providerPaid: 0, providerBalanceOwed: 0,
-      idrTeamCommission: 0, bhacNetExpected: 0, bhacRetainedToDate: 0, bhacBalanceOwed: 0,
+      idrTeamCommission: 0, idrTeamCommissionExpected: 0,
+      bhacNetExpected: 0, bhacRetainedToDate: 0, bhacBalanceOwed: 0,
     }
   );
 }
