@@ -205,7 +205,7 @@ function ProviderSection({ providerName, procedures }: { providerName: string; p
                   <th className="px-2 py-1.5 text-xs font-semibold text-slate-500 uppercase tracking-wide bg-slate-50 border-r border-slate-200">CPT</th>
                   <th className="px-2 py-1.5 text-xs font-semibold text-green-600 uppercase tracking-wide text-right bg-green-50 leading-tight">Provider</th>
                   <th className="px-2 py-1.5 text-xs font-semibold text-green-600 uppercase tracking-wide text-right bg-green-50 leading-tight">IDR</th>
-                  <th className="px-2 py-1.5 text-xs font-semibold text-green-600 uppercase tracking-wide text-right bg-green-50 leading-tight border-r border-green-100">BHAC Net</th>
+                  <th className="px-2 py-1.5 text-xs font-semibold text-green-600 uppercase tracking-wide text-right bg-green-50 leading-tight border-r border-green-100">BHAC</th>
                   <th className="px-2 py-1.5 text-xs font-semibold text-blue-500 uppercase tracking-wide text-right bg-blue-50 leading-tight">Provider</th>
                   <th className="px-2 py-1.5 text-xs font-semibold text-blue-500 uppercase tracking-wide text-right bg-blue-50 leading-tight">Open Bal.</th>
                   <th className="px-2 py-1.5 text-xs font-semibold text-blue-500 uppercase tracking-wide text-right bg-blue-50 leading-tight">IDR</th>
