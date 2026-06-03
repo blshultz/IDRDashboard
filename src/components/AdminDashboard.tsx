@@ -280,7 +280,7 @@ export default function AdminDashboard({ procedures, onRefetch }: Props) {
       <section className="space-y-4">
         <h2 className="text-lg font-semibold text-slate-700">Practice Overview</h2>
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 xl:grid-cols-7 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-4 xl:grid-cols-8 gap-4">
           <SummaryCard
             label="Total Allowed"
             value={globalSummary.procedureTotal}
@@ -293,6 +293,12 @@ export default function AdminDashboard({ procedures, onRefetch }: Props) {
             label="Total Deposited"
             value={globalSummary.totalDeposited}
             icon={<Wallet className="w-5 h-5" />}
+            color="blue"
+          />
+          <SummaryCard
+            label="Total Pending"
+            value={globalSummary.procedureTotal - globalSummary.totalDeposited}
+            icon={<Clock className="w-5 h-5" />}
             color="blue"
           />
           <SummaryCard
