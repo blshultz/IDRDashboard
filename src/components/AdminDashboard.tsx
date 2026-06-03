@@ -39,13 +39,13 @@ function PieChartCard({ claimsTotal, awardsTotal }: { claimsTotal: number; award
   const awardsPct = 100 - claimsPct;
 
   return (
-    <div className="rounded-xl border p-5 bg-blue-50 border-blue-100 transition-shadow hover:shadow-md">
-      <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-3">
+    <div className="rounded-xl border pt-4 pb-4 pl-3 pr-3 bg-blue-50 border-blue-100 transition-shadow hover:shadow-md">
+      <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-2">
         Claims vs Awards
       </p>
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2">
         {/* Donut chart — rotated -90° so arc starts at 12 o'clock */}
-        <svg width="64" height="64" viewBox="0 0 64 64" className="flex-shrink-0" style={{ transform: 'rotate(-90deg)' }}>
+        <svg width="54" height="54" viewBox="0 0 64 64" className="flex-shrink-0" style={{ transform: 'rotate(-90deg)' }}>
           {/* Track (blue-200) */}
           <circle cx="32" cy="32" r={r} fill="none" stroke="#bfdbfe" strokeWidth={sw} />
           {/* Claims arc — blue-600 */}
